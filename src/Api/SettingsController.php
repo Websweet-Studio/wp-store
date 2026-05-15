@@ -73,7 +73,6 @@ class SettingsController
         if (isset($params['bank_holder'])) $settings['bank_holder'] = sanitize_text_field($params['bank_holder']);
 
         if (isset($params['rajaongkir_api_key'])) $settings['rajaongkir_api_key'] = sanitize_text_field($params['rajaongkir_api_key']);
-        if (isset($params['rajaongkir_account_type'])) $settings['rajaongkir_account_type'] = sanitize_text_field($params['rajaongkir_account_type']);
 
         if (isset($params['shipping_origin_province'])) $settings['shipping_origin_province'] = sanitize_text_field($params['shipping_origin_province']);
         if (isset($params['shipping_origin_city'])) $settings['shipping_origin_city'] = sanitize_text_field($params['shipping_origin_city']);

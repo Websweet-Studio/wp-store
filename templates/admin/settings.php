@@ -1,6 +1,29 @@
 <?php
 $settings = get_option('wp_store_settings', []);
 $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
+
+$wp_store_ro_key = isset($settings['rajaongkir_api_key']) ? trim((string) $settings['rajaongkir_api_key']) : '';
+$wp_store_ro_key_valid = false;
+if ($wp_store_ro_key !== '' && class_exists('\WpStore\Api\RajaOngkirController')) {
+    $cache_key = 'wp_store_ro_key_valid_' . md5($wp_store_ro_key);
+    $cached = get_transient($cache_key);
+    if ($cached !== false) {
+        $wp_store_ro_key_valid = (bool) $cached;
+    } else {
+        $url = \WpStore\Api\RajaOngkirController::get_rajaongkir_base_url() . '/destination/province';
+        $resp = wp_remote_get($url, [
+            'headers' => ['key' => $wp_store_ro_key],
+            'timeout' => 8
+        ]);
+        if (!is_wp_error($resp)) {
+            $status = (int) wp_remote_retrieve_response_code($resp);
+            $body = (string) wp_remote_retrieve_body($resp);
+            $data = json_decode($body, true);
+            $wp_store_ro_key_valid = ($status >= 200 && $status < 300 && is_array($data) && (isset($data['data']) || isset($data['rajaongkir']['results'])));
+        }
+        set_transient($cache_key, $wp_store_ro_key_valid ? 1 : 0, HOUR_IN_SECONDS);
+    }
+}
 ?>
 <div class="wrap wp-store-wrapper" x-data="storeSettingsManager()">
     <div class="wp-store-header">
@@ -272,99 +295,99 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general
                     <h3 class="wp-store-subtitle">Pengaturan Pengiriman</h3>
                     <p class="wp-store-helper">Konfigurasi API Raja Ongkir dan metode pengiriman.</p>
 
-                    <div class="wp-store-box-gray wp-store-mt-4">
-                        <h4 class="wp-store-subtitle-small">API Raja Ongkir</h4>
-                        <div class="wp-store-mt-2">
-                            <label class="wp-store-label" for="rajaongkir_api_key">API Key</label>
-                            <input name="rajaongkir_api_key" type="text" id="rajaongkir_api_key" value="<?php echo esc_attr($settings['rajaongkir_api_key'] ?? ''); ?>" class="wp-store-input" placeholder="Masukkan API Key Starter/Basic/Pro Anda">
-                            <p class="wp-store-helper">Dapatkan API Key di <a href="https://rajaongkir.com/" target="_blank">RajaOngkir.com</a>.</p>
+                    <div class="wp-store-mt-4">
+                        <div>
+                            <label class="wp-store-label" for="rajaongkir_api_key">API Key Raja Ongkir</label>
+                            <input name="rajaongkir_api_key" type="text" id="rajaongkir_api_key" value="<?php echo esc_attr($settings['rajaongkir_api_key'] ?? ''); ?>" class="wp-store-input" placeholder="Masukkan API Key">
+                            <p class="wp-store-helper">Dapatkan API Key di <a href="https://rajaongkir.com/" target="_blank" rel="noopener">RajaOngkir.com</a>.</p>
                         </div>
-
-                        <div class="wp-store-mt-4">
-                            <label class="wp-store-label" for="rajaongkir_account_type">Tipe Akun</label>
-                            <select name="rajaongkir_account_type" id="rajaongkir_account_type" class="wp-store-input" style="width: 200px;">
-                                <option value="starter" <?php selected($settings['rajaongkir_account_type'] ?? 'starter', 'starter'); ?>>Starter (Free)</option>
-                                <option value="basic" <?php selected($settings['rajaongkir_account_type'] ?? 'starter', 'basic'); ?>>Basic</option>
-                                <option value="pro" <?php selected($settings['rajaongkir_account_type'] ?? 'starter', 'pro'); ?>>Pro</option>
-                            </select>
+                        <div class="wp-store-mt-2">
+                            <?php if ($wp_store_ro_key_valid) : ?>
+                                <span class="wp-store-badge wp-store-badge-green">API Key valid</span>
+                            <?php else : ?>
+                                <span class="wp-store-badge wp-store-badge-red">API Key belum valid</span>
+                                <span class="wp-store-helper">Asal pengiriman & kurir disembunyikan sampai API Key valid.</span>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <div class="wp-store-box-gray wp-store-mt-4">
-                        <h4 class="wp-store-subtitle-small">Asal Pengiriman</h4>
-                        <p class="wp-store-helper">Lokasi toko Anda untuk perhitungan ongkos kirim.</p>
-
-                        <div class="wp-store-mt-2">
-                            <!-- Province -->
-                            <div class="wp-store-mb-2">
-                                <label class="wp-store-label" for="shipping_origin_province">Provinsi</label>
-                                <select name="shipping_origin_province" id="shipping_origin_province" x-model="settings.shipping_origin_province" @change="onProvinceChange()" class="wp-store-input" style="width: 100%; max-width: 400px;">
-                                    <option value="">-- Pilih Provinsi --</option>
-                                    <template x-for="prov in provinces" :key="prov.province_id">
-                                        <option :value="prov.province_id" x-text="prov.province" :selected="prov.province_id == settings.shipping_origin_province"></option>
-                                    </template>
-                                </select>
-                                <div x-show="isLoadingProvinces" class="wp-store-helper">Memuat provinsi...</div>
-                            </div>
-
-                            <!-- City -->
-                            <div class="wp-store-mb-2">
-                                <label class="wp-store-label" for="shipping_origin_city">Kota/Kabupaten</label>
-                                <select name="shipping_origin_city" id="shipping_origin_city" x-model="settings.shipping_origin_city" @change="onCityChange()" class="wp-store-input" style="width: 100%; max-width: 400px;" :disabled="!settings.shipping_origin_province">
-                                    <option value="">-- Pilih Kota/Kabupaten --</option>
-                                    <template x-for="city in cities" :key="city.city_id">
-                                        <option :value="city.city_id" x-text="`${city.type} ${city.city_name}`" :selected="city.city_id == settings.shipping_origin_city"></option>
-                                    </template>
-                                </select>
-                                <div x-show="isLoadingCities" class="wp-store-helper">Memuat kota...</div>
-                            </div>
-
-                            <!-- Subdistrict -->
-                            <div class="wp-store-mb-2">
-                                <label class="wp-store-label" for="shipping_origin_subdistrict">Kecamatan</label>
-                                <select name="shipping_origin_subdistrict" id="shipping_origin_subdistrict" x-model="settings.shipping_origin_subdistrict" class="wp-store-input" style="width: 100%; max-width: 400px;" :disabled="!settings.shipping_origin_city">
-                                    <option value="">-- Pilih Kecamatan --</option>
-                                    <template x-for="sub in subdistricts" :key="sub.subdistrict_id">
-                                        <option :value="sub.subdistrict_id" x-text="sub.subdistrict_name" :selected="sub.subdistrict_id == settings.shipping_origin_subdistrict"></option>
-                                    </template>
-                                </select>
-                                <div x-show="isLoadingSubdistricts" class="wp-store-helper">Memuat kecamatan...</div>
-                            </div>
-
+                    <?php if ($wp_store_ro_key_valid) : ?>
+                        <div class="wp-store-box-gray wp-store-mt-4">
+                            <h4 class="wp-store-subtitle-small">Asal Pengiriman</h4>
                             <p class="wp-store-helper">Lokasi toko Anda untuk perhitungan ongkos kirim.</p>
-                        </div>
-                    </div>
 
-                    <div class="wp-store-box-gray wp-store-mt-4">
-                        <h4 class="wp-store-subtitle-small">Kurir Aktif</h4>
-                        <p class="wp-store-helper">Pilih kurir yang ingin Anda gunakan.</p>
+                            <div class="wp-store-mt-2">
+                                <!-- Province -->
+                                <div class="wp-store-mb-2">
+                                    <label class="wp-store-label" for="shipping_origin_province">Provinsi</label>
+                                    <select name="shipping_origin_province" id="shipping_origin_province" x-model="settings.shipping_origin_province" @change="onProvinceChange()" class="wp-store-input" style="width: 100%; max-width: 400px;">
+                                        <option value="">-- Pilih Provinsi --</option>
+                                        <template x-for="prov in provinces" :key="prov.province_id">
+                                            <option :value="prov.province_id" x-text="prov.province" :selected="prov.province_id == settings.shipping_origin_province"></option>
+                                        </template>
+                                    </select>
+                                    <div x-show="isLoadingProvinces" class="wp-store-helper">Memuat provinsi...</div>
+                                </div>
 
-                        <div class="wp-store-grid-3 wp-store-mt-2">
-                            <?php
-                            $couriers = [
-                                'jne' => 'JNE',
-                                'sicepat' => 'SiCepat',
-                                'ide' => 'IDExpress',
-                                'sap' => 'SAP Express',
-                                'ninja' => 'Ninja',
-                                'jnt' => 'J&T Express',
-                                'tiki' => 'TIKI',
-                                'wahana' => 'Wahana Express',
-                                'pos' => 'POS Indonesia',
-                                'sentral' => 'Sentral Cargo',
-                                'lion' => 'Lion Parcel',
-                                'rex' => 'Royal Express Asia'
-                            ];
-                            $active_couriers = $settings['shipping_couriers'] ?? ['jne', 'sicepat', 'ide'];
-                            foreach ($couriers as $code => $label) :
-                            ?>
-                                <label class="wp-store-checkbox-label">
-                                    <input type="checkbox" name="shipping_couriers[]" value="<?php echo $code; ?>" <?php echo in_array($code, $active_couriers) ? 'checked' : ''; ?>>
-                                    <?php echo $label; ?>
-                                </label>
-                            <?php endforeach; ?>
+                                <!-- City -->
+                                <div class="wp-store-mb-2">
+                                    <label class="wp-store-label" for="shipping_origin_city">Kota/Kabupaten</label>
+                                    <select name="shipping_origin_city" id="shipping_origin_city" x-model="settings.shipping_origin_city" @change="onCityChange()" class="wp-store-input" style="width: 100%; max-width: 400px;" :disabled="!settings.shipping_origin_province">
+                                        <option value="">-- Pilih Kota/Kabupaten --</option>
+                                        <template x-for="city in cities" :key="city.city_id">
+                                            <option :value="city.city_id" x-text="`${city.type} ${city.city_name}`" :selected="city.city_id == settings.shipping_origin_city"></option>
+                                        </template>
+                                    </select>
+                                    <div x-show="isLoadingCities" class="wp-store-helper">Memuat kota...</div>
+                                </div>
+
+                                <!-- Subdistrict -->
+                                <div class="wp-store-mb-2">
+                                    <label class="wp-store-label" for="shipping_origin_subdistrict">Kecamatan</label>
+                                    <select name="shipping_origin_subdistrict" id="shipping_origin_subdistrict" x-model="settings.shipping_origin_subdistrict" class="wp-store-input" style="width: 100%; max-width: 400px;" :disabled="!settings.shipping_origin_city">
+                                        <option value="">-- Pilih Kecamatan --</option>
+                                        <template x-for="sub in subdistricts" :key="sub.subdistrict_id">
+                                            <option :value="sub.subdistrict_id" x-text="sub.subdistrict_name" :selected="sub.subdistrict_id == settings.shipping_origin_subdistrict"></option>
+                                        </template>
+                                    </select>
+                                    <div x-show="isLoadingSubdistricts" class="wp-store-helper">Memuat kecamatan...</div>
+                                </div>
+
+                                <p class="wp-store-helper">Lokasi toko Anda untuk perhitungan ongkos kirim.</p>
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="wp-store-box-gray wp-store-mt-4">
+                            <h4 class="wp-store-subtitle-small">Kurir Aktif</h4>
+                            <p class="wp-store-helper">Pilih kurir yang ingin Anda gunakan.</p>
+
+                            <div class="wp-store-grid-3 wp-store-mt-2">
+                                <?php
+                                $couriers = [
+                                    'jne' => 'JNE',
+                                    'sicepat' => 'SiCepat',
+                                    'ide' => 'IDExpress',
+                                    'sap' => 'SAP Express',
+                                    'ninja' => 'Ninja',
+                                    'jnt' => 'J&T Express',
+                                    'tiki' => 'TIKI',
+                                    'wahana' => 'Wahana Express',
+                                    'pos' => 'POS Indonesia',
+                                    'sentral' => 'Sentral Cargo',
+                                    'lion' => 'Lion Parcel',
+                                    'rex' => 'Royal Express Asia'
+                                ];
+                                $active_couriers = $settings['shipping_couriers'] ?? ['jne', 'sicepat', 'ide'];
+                                foreach ($couriers as $code => $label) :
+                                ?>
+                                    <label class="wp-store-checkbox-label">
+                                        <input type="checkbox" name="shipping_couriers[]" value="<?php echo $code; ?>" <?php echo in_array($code, $active_couriers) ? 'checked' : ''; ?>>
+                                        <?php echo $label; ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -725,11 +748,11 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general
             isLoadingProvinces: false,
             isLoadingCities: false,
             isLoadingSubdistricts: false,
+            hasValidRajaOngkirKey: <?php echo $wp_store_ro_key_valid ? 'true' : 'false'; ?>,
             settings: {
                 shipping_origin_province: '<?php echo esc_js($settings['shipping_origin_province'] ?? ''); ?>',
                 shipping_origin_city: '<?php echo esc_js($settings['shipping_origin_city'] ?? ''); ?>',
                 shipping_origin_subdistrict: '<?php echo esc_js($settings['shipping_origin_subdistrict'] ?? ''); ?>',
-                rajaongkir_account_type: '<?php echo esc_js($settings['rajaongkir_account_type'] ?? 'starter'); ?>',
                 qris_image_id: '<?php echo esc_js($settings['qris_image_id'] ?? ''); ?>'
             },
 
@@ -737,15 +760,17 @@ $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general
                 // Initialize history state if needed
                 this.updateUrl(this.activeTab);
 
-                this.loadProvinces().then(() => {
-                    if (this.settings.shipping_origin_province) {
-                        this.loadCities(this.settings.shipping_origin_province).then(() => {
-                            if (this.settings.shipping_origin_city) {
-                                this.loadSubdistricts(this.settings.shipping_origin_city);
-                            }
-                        });
-                    }
-                });
+                if (this.hasValidRajaOngkirKey) {
+                    this.loadProvinces().then(() => {
+                        if (this.settings.shipping_origin_province) {
+                            this.loadCities(this.settings.shipping_origin_province).then(() => {
+                                if (this.settings.shipping_origin_city) {
+                                    this.loadSubdistricts(this.settings.shipping_origin_city);
+                                }
+                            });
+                        }
+                    });
+                }
 
                 this.loadCacheStats();
 
