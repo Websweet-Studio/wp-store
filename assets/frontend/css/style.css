@@ -967,7 +967,9 @@ tr:not(:last-child) .wps-td {
 .wps-products-carousel .carousel-main:not(.flickity-enabled) .carousel-cell {
   display: none;
 }
-.wps-products-carousel .carousel-main:not(.flickity-enabled) .carousel-cell:first-child {
+.wps-products-carousel
+  .carousel-main:not(.flickity-enabled)
+  .carousel-cell:first-child {
   display: block;
 }
 .wps-products-carousel .carousel-nav:not(.flickity-enabled) {
@@ -1083,10 +1085,17 @@ tr:not(:last-child) .wps-td {
   opacity: 1;
   background: #111827;
 }
-
-.carousel-nav .carousel-cell.is-nav-selected {
-  border: 2px solid #2563eb;
+.carousel-nav .carousel-cell {
+  cursor: pointer;
+}
+.carousel-nav .carousel-cell img {
+  border: 2px solid transparent;
   border-radius: 6px;
+}
+.carousel-nav .carousel-cell.is-nav-selected img,
+.carousel-nav .carousel-cell:hover img {
+  transition: all 0.3s ease-in-out;
+  border: 2px solid #000;
 }
 
 .wps-products-carousel .carousel-main .carousel-cell {
@@ -1096,6 +1105,7 @@ tr:not(:last-child) .wps-td {
 .wps-products-carousel .carousel-main .carousel-cell img {
   width: 100%;
   display: block;
+  object-fit: cover;
 }
 
 @media (max-width: 768px) {

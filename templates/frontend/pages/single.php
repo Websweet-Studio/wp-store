@@ -57,7 +57,7 @@
                 <div class="wps-mt-2 wps-products-carousel" data-wps-carousel data-as-nav-for="#wps-main-carousel-<?php echo esc_attr($id); ?>" data-cell-align="left" data-contain="true" data-wrap-around="false" data-page-dots="false" data-prev-next-buttons="false" data-draggable="true">
                     <div class="main-carousel carousel-nav">
                         <?php foreach ($items as $idx => $gi) : ?>
-                            <div class="carousel-cell wps-mr-2" style="width:64px;">
+                            <div class="carousel-cell" style="width:64px;">
                                 <img class="wps-img-60 wps-rounded" src="<?php echo esc_url($gi['thumb']); ?>" alt="">
                             </div>
                         <?php endforeach; ?>
