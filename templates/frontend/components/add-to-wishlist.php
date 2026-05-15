@@ -108,7 +108,7 @@
         <span x-show="!iconOnly" class="wps-pl-1"><?php echo esc_html($label_add); ?></span>
     </button>
     <div x-show="toastShow" x-transition x-cloak
-        :style="'position:fixed;bottom:30px;right:30px;padding:12px 16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.1);border-left:4px solid ' + (toastType === 'success' ? '#46b450' : '#d63638') + ';border-radius:4px;z-index:9999;'">
+        :style="'position:fixed;top:20px;right:20px;bottom:auto;padding:12px 16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.1);border-left:4px solid ' + (toastType === 'success' ? '#46b450' : '#d63638') + ';border-radius:4px;z-index:9999;'">
         <span x-text="toastMessage" class="wps-text-sm wps-text-gray-900"></span>
     </div>
     <div x-show="showLoginModal" x-cloak class="wps-modal-backdrop" @click.self="showLoginModal = false" @keydown.escape.window="showLoginModal = false" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:10000;"></div>

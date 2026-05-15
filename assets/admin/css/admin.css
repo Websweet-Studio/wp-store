@@ -374,8 +374,9 @@
 /* Toast Notification */
 .wp-store-toast {
   position: fixed;
-  bottom: 30px;
+  top: 50px;
   right: 30px;
+  bottom: auto;
   padding: 12px 20px;
   background: #fff;
   border-left: 4px solid #46b450;

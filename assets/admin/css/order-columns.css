@@ -1,7 +1,8 @@
 .wp-store-toast {
   position: fixed;
-  bottom: 24px;
+  top: 50px;
   right: 24px;
+  bottom: auto;
   background: #fff;
   color: #1f2937;
   padding: 10px 14px;

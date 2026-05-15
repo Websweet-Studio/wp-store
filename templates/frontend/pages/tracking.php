@@ -380,8 +380,9 @@ if (!$order_number) {
                                         el = document.createElement('div');
                                         el.id = 'wp-store-frontend-toast';
                                         el.style.position = 'fixed';
-                                        el.style.bottom = '30px';
-                                        el.style.right = '30px';
+                                        el.style.top = '20px';
+                                        el.style.right = '20px';
+                                        el.style.bottom = 'auto';
                                         el.style.padding = '12px 16px';
                                         el.style.background = '#fff';
                                         el.style.boxShadow = '0 3px 10px rgba(0,0,0,.1)';
