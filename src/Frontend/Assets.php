@@ -42,12 +42,6 @@ class Assets
             [],
             WP_STORE_VERSION
         );
-        wp_register_style(
-            'wp-store-flickity',
-            WP_STORE_URL . 'assets/frontend/css/vendor/flickity.css',
-            [],
-            WP_STORE_VERSION
-        );
 
         wp_enqueue_style('wp-store-frontend-css');
         $settings = get_option('wp_store_settings', []);
@@ -128,7 +122,6 @@ class Assets
                 })(),
             ]
         );
-        wp_enqueue_style('wp-store-flickity');
         wp_enqueue_script('wp-store-vendor');
         wp_enqueue_script('wp-store-frontend');
     }

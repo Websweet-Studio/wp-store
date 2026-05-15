@@ -633,7 +633,6 @@ class Shortcode
             'draggable' => 'true',
             'contain' => 'true'
         ], $atts);
-        wp_enqueue_style('wp-store-flickity');
         $per_page = (int) $atts['per_page'];
         if ($per_page <= 0 || $per_page > 20) {
             $per_page = 10;
@@ -818,7 +817,6 @@ class Shortcode
     public function render_single($atts = [])
     {
         wp_enqueue_script('wp-store-frontend');
-        wp_enqueue_style('wp-store-flickity');
         $atts = shortcode_atts([
             'id' => get_the_ID(),
         ], $atts);

@@ -114,7 +114,7 @@ class RajaOngkirController
             if ($type === 'subdistrict' && (string)$id === (string)$destination_subdistrict) $match = true;
             elseif ($type === 'city' && (string)$id === (string)$destination_city) $match = true;
             elseif ($type === 'province' && (string)$id === (string)$destination_province) $match = true;
-            
+
             if ($match) {
                 $custom_services[] = [
                     'courier' => 'custom',
@@ -172,8 +172,28 @@ class RajaOngkirController
                 'message' => $response->get_error_message()
             ], 500);
         }
-        $body = wp_remote_retrieve_body($response);
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $body = (string) wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
+        if ($status < 200 || $status >= 300) {
+            $msg = '';
+            if (is_array($data)) {
+                $msg = (string) ($data['message'] ?? $data['error'] ?? '');
+            }
+            if ($msg === '') {
+                $msg = 'Raja Ongkir error (HTTP ' . $status . ').';
+            }
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $msg,
+            ], ($status >= 400 && $status <= 599) ? $status : 500);
+        }
+        if (!is_array($data)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'Respon Raja Ongkir tidak valid.'
+            ], 502);
+        }
         $services = [];
         if (isset($data['data'])) {
             $d = $data['data'];
@@ -237,8 +257,15 @@ class RajaOngkirController
                 if (is_wp_error($resp)) {
                     continue;
                 }
-                $b2 = wp_remote_retrieve_body($resp);
+                $st2 = (int) wp_remote_retrieve_response_code($resp);
+                $b2 = (string) wp_remote_retrieve_body($resp);
+                if ($st2 < 200 || $st2 >= 300) {
+                    continue;
+                }
                 $d2 = json_decode($b2, true);
+                if (!is_array($d2)) {
+                    continue;
+                }
                 if (isset($d2['data'])) {
                     $dd = $d2['data'];
                     if (isset($dd['couriers']) && is_array($dd['couriers'])) {
@@ -349,8 +376,28 @@ class RajaOngkirController
             ], 500);
         }
 
-        $body = wp_remote_retrieve_body($response);
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $body = (string) wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
+        if ($status < 200 || $status >= 300) {
+            $msg = '';
+            if (is_array($data)) {
+                $msg = (string) ($data['message'] ?? $data['error'] ?? '');
+            }
+            if ($msg === '') {
+                $msg = 'Raja Ongkir error (HTTP ' . $status . ').';
+            }
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $msg,
+            ], ($status >= 400 && $status <= 599) ? $status : 500);
+        }
+        if (!is_array($data)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'Respon Raja Ongkir tidak valid.'
+            ], 502);
+        }
 
         if (isset($data['data'])) {
             $provinces = array_map(function ($item) {
@@ -379,8 +426,7 @@ class RajaOngkirController
         return new WP_REST_Response([
             'success' => false,
             'message' => 'Gagal mengambil data provinsi.',
-            'raw' => $data
-        ], 500);
+        ], 502);
     }
 
     public function get_rajaongkir_cities(WP_REST_Request $request)
@@ -426,8 +472,28 @@ class RajaOngkirController
             ], 500);
         }
 
-        $body = wp_remote_retrieve_body($response);
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $body = (string) wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
+        if ($status < 200 || $status >= 300) {
+            $msg = '';
+            if (is_array($data)) {
+                $msg = (string) ($data['message'] ?? $data['error'] ?? '');
+            }
+            if ($msg === '') {
+                $msg = 'Raja Ongkir error (HTTP ' . $status . ').';
+            }
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $msg,
+            ], ($status >= 400 && $status <= 599) ? $status : 500);
+        }
+        if (!is_array($data)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'Respon Raja Ongkir tidak valid.'
+            ], 502);
+        }
 
         if (isset($data['data'])) {
             $cities = array_map(function ($item) {
@@ -459,8 +525,7 @@ class RajaOngkirController
         return new WP_REST_Response([
             'success' => false,
             'message' => 'Gagal mengambil data kota.',
-            'raw' => $data
-        ], 500);
+        ], 502);
     }
 
     public function get_rajaongkir_subdistricts(WP_REST_Request $request)
@@ -506,8 +571,28 @@ class RajaOngkirController
             ], 500);
         }
 
-        $body = wp_remote_retrieve_body($response);
+        $status = (int) wp_remote_retrieve_response_code($response);
+        $body = (string) wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
+        if ($status < 200 || $status >= 300) {
+            $msg = '';
+            if (is_array($data)) {
+                $msg = (string) ($data['message'] ?? $data['error'] ?? '');
+            }
+            if ($msg === '') {
+                $msg = 'Raja Ongkir error (HTTP ' . $status . ').';
+            }
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => $msg,
+            ], ($status >= 400 && $status <= 599) ? $status : 500);
+        }
+        if (!is_array($data)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => 'Respon Raja Ongkir tidak valid.'
+            ], 502);
+        }
 
         if (isset($data['data'])) {
             $subdistricts = array_map(function ($item) {
@@ -536,7 +621,6 @@ class RajaOngkirController
         return new WP_REST_Response([
             'success' => false,
             'message' => 'Gagal mengambil data kecamatan.',
-            'raw' => $data
-        ], 500);
+        ], 502);
     }
 }

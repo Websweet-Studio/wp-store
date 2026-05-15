@@ -222,6 +222,20 @@
     box-shadow 0.2s ease,
     background-color 0.2s ease;
 }
+select.wp-store-input {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 36px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%236b7280' d='M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 16px 16px !important;
+}
+select.wp-store-input[multiple],
+select.wp-store-input[size]:not([size="1"]) {
+  background-image: none;
+  padding-right: 12px !important;
+}
 .wp-store-input:focus,
 .wp-store-textarea:focus {
   border-color: #2271b1;

@@ -304,8 +304,15 @@
                             'X-WP-Nonce': wpStoreSettings.nonce
                         }
                     });
-                    const data = await res.json();
-                    this.provinces = data.data || [];
+                    let data = null;
+                    try { data = await res.json(); } catch (_) {}
+                    if (!res.ok) {
+                        const msg = (data && data.message) ? data.message : 'Gagal memuat provinsi.';
+                        this.provinces = [];
+                        this.showToast(msg, 'error');
+                        return;
+                    }
+                    this.provinces = (data && data.data) ? data.data : [];
                 } catch (e) {
                     this.provinces = [];
                 } finally {
@@ -325,8 +332,15 @@
                             'X-WP-Nonce': wpStoreSettings.nonce
                         }
                     });
-                    const data = await res.json();
-                    this.cities = data.data || [];
+                    let data = null;
+                    try { data = await res.json(); } catch (_) {}
+                    if (!res.ok) {
+                        const msg = (data && data.message) ? data.message : 'Gagal memuat kota.';
+                        this.cities = [];
+                        this.showToast(msg, 'error');
+                        return;
+                    }
+                    this.cities = (data && data.data) ? data.data : [];
                 } catch (e) {
                     this.cities = [];
                 } finally {
@@ -346,8 +360,15 @@
                             'X-WP-Nonce': wpStoreSettings.nonce
                         }
                     });
-                    const data = await res.json();
-                    this.subdistricts = data.data || [];
+                    let data = null;
+                    try { data = await res.json(); } catch (_) {}
+                    if (!res.ok) {
+                        const msg = (data && data.message) ? data.message : 'Gagal memuat kecamatan.';
+                        this.subdistricts = [];
+                        this.showToast(msg, 'error');
+                        return;
+                    }
+                    this.subdistricts = (data && data.data) ? data.data : [];
                 } catch (e) {
                     this.subdistricts = [];
                 } finally {
