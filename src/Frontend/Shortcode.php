@@ -24,6 +24,7 @@ class Shortcode
         add_shortcode('wp_store_add_to_wishlist', [$this, 'render_add_to_wishlist']);
         add_shortcode('wp_store_link_profile', [$this, 'render_link_profile']);
         add_shortcode('wp_store_products_carousel', [$this, 'render_products_carousel']);
+        add_shortcode('wp_store_brand_carousel', [$this, 'render_brand_carousel']);
         add_shortcode('wp_store_shipping_checker', [$this, 'render_shipping_checker']);
         add_shortcode('wp_store_catalog', [$this, 'render_catalog']);
         add_shortcode('wp_store_filters', [$this, 'render_filters']);
@@ -684,6 +685,158 @@ class Shortcode
         ]);
         wp_enqueue_script('wp-store-frontend');
         return $html;
+    }
+
+    public function render_brand_carousel($atts = [])
+    {
+        wp_enqueue_script('alpinejs');
+        $atts = shortcode_atts([
+            'label' => '',
+            'per_page' => 30,
+            'per_row' => 6,
+            'img_width' => 160,
+            'img_height' => 80,
+            'show_name' => 'false',
+            'only_with_logo' => 'true',
+            'hide_empty' => 'false',
+            'orderby' => 'name',
+            'order' => 'ASC',
+            'autoplay' => 0,
+            'pause_on_hover' => 'true',
+            'wrap_around' => 'true',
+            'page_dots' => 'false',
+            'prev_next_buttons' => 'true',
+            'lazy_load' => 0,
+            'cell_align' => 'left',
+            'draggable' => 'true',
+            'contain' => 'true'
+        ], $atts);
+
+        $per_page = (int) $atts['per_page'];
+        if ($per_page <= 0 || $per_page > 200) {
+            $per_page = 30;
+        }
+
+        $per_row = (int) $atts['per_row'];
+        if ($per_row <= 0 || $per_row > 12) {
+            $per_row = 6;
+        }
+
+        $w = max(1, (int) $atts['img_width']);
+        $h = max(1, (int) $atts['img_height']);
+        $size = [$w, $h];
+        $aspect_ratio = (int) $w . ' / ' . (int) $h;
+
+        $only_with_logo = in_array(strtolower((string) $atts['only_with_logo']), ['1', 'true', 'yes'], true);
+        $hide_empty = in_array(strtolower((string) $atts['hide_empty']), ['1', 'true', 'yes'], true);
+        $show_name = in_array(strtolower((string) $atts['show_name']), ['1', 'true', 'yes'], true);
+
+        $orderby = sanitize_key((string) $atts['orderby']);
+        if (!in_array($orderby, ['name', 'count', 'id', 'slug', 'term_group', 'term_id'], true)) {
+            $orderby = 'name';
+        }
+        $order = strtoupper((string) $atts['order']) === 'DESC' ? 'DESC' : 'ASC';
+
+        $terms = get_terms([
+            'taxonomy' => 'store_product_brand',
+            'hide_empty' => $hide_empty,
+            'number' => $per_page,
+            'orderby' => $orderby,
+            'order' => $order,
+        ]);
+
+        if (is_wp_error($terms) || empty($terms)) {
+            return '<div class="wps-text-sm wps-text-gray-500">Tidak ada brand.</div>';
+        }
+
+        $items = [];
+        foreach ($terms as $t) {
+            if (!is_object($t) || !isset($t->term_id)) {
+                continue;
+            }
+            $term_id = (int) $t->term_id;
+            if ($term_id <= 0) {
+                continue;
+            }
+            $logo_id = (int) get_term_meta($term_id, '_store_brand_logo_id', true);
+            $src = $logo_id ? wp_get_attachment_image_url($logo_id, $size) : '';
+            if ($only_with_logo && !$src) {
+                continue;
+            }
+            $link = get_term_link($term_id, 'store_product_brand');
+            if (is_wp_error($link) || !is_string($link)) {
+                $link = '';
+            }
+            $items[] = [
+                'id' => $term_id,
+                'name' => (string) ($t->name ?? ''),
+                'link' => $link,
+                'logo' => $src ? $src : null,
+            ];
+        }
+
+        if (empty($items)) {
+            return '<div class="wps-text-sm wps-text-gray-500">Tidak ada brand.</div>';
+        }
+
+        $label = is_string($atts['label']) ? (string) $atts['label'] : '';
+        $cell_align = sanitize_key((string) $atts['cell_align']);
+        $contain = in_array(strtolower((string) $atts['contain']), ['1', 'true', 'yes'], true);
+        $wrap = in_array(strtolower((string) $atts['wrap_around']), ['1', 'true', 'yes'], true);
+        $dots = in_array(strtolower((string) $atts['page_dots']), ['1', 'true', 'yes'], true);
+        $buttons = in_array(strtolower((string) $atts['prev_next_buttons']), ['1', 'true', 'yes'], true);
+        $lazy = max(0, (int) $atts['lazy_load']);
+        $autoplay = max(0, (int) $atts['autoplay']);
+        $pause_hover = in_array(strtolower((string) $atts['pause_on_hover']), ['1', 'true', 'yes'], true);
+        $draggable = in_array(strtolower((string) $atts['draggable']), ['1', 'true', 'yes'], true);
+        $group_cells = $per_row > 1 ? $per_row : 0;
+
+        ob_start();
+?>
+        <div class="wps-products-carousel wps-brand-carousel"
+            data-wps-carousel="1"
+            data-cell-align="<?php echo esc_attr($cell_align ?: 'left'); ?>"
+            data-contain="<?php echo $contain ? 'true' : 'false'; ?>"
+            data-wrap-around="<?php echo $wrap ? 'true' : 'false'; ?>"
+            data-page-dots="<?php echo $dots ? 'true' : 'false'; ?>"
+            data-prev-next-buttons="<?php echo $buttons ? 'true' : 'false'; ?>"
+            data-lazy-load="<?php echo (int) $lazy; ?>"
+            data-autoplay="<?php echo (int) $autoplay; ?>"
+            data-pause-on-hover="<?php echo $pause_hover ? 'true' : 'false'; ?>"
+            data-draggable="<?php echo $draggable ? 'true' : 'false'; ?>"
+            data-group-cells="<?php echo (int) $group_cells; ?>">
+            <?php if ($label !== '') : ?>
+                <div class="wps-text-sm wps-text-gray-900 wps-mb-3"><?php echo esc_html($label); ?></div>
+            <?php endif; ?>
+            <div>
+                <div class="main-carousel" style="width:100%;">
+                    <?php foreach ($items as $item) : ?>
+                        <?php
+                        $name = (string) ($item['name'] ?? '');
+                        $src = is_string($item['logo'] ?? null) ? (string) $item['logo'] : '';
+                        $link = (string) ($item['link'] ?? '');
+                        ?>
+                        <a href="<?php echo esc_url($link ?: '#'); ?>" class="carousel-cell wps-brand-cell" style="width:calc(100% / <?php echo (int) $per_row; ?>); margin-right:8px; display:block;">
+                            <div class="wps-brand-item">
+                                <div class="wps-brand-logo-wrap" style="width:100%; aspect-ratio: <?php echo esc_attr($aspect_ratio); ?>;">
+                                    <?php if ($src) : ?>
+                                        <img class="wps-brand-logo" src="<?php echo esc_url($src); ?>" alt="<?php echo esc_attr($name); ?>" loading="lazy">
+                                    <?php else : ?>
+                                        <div class="wps-brand-fallback"><?php echo esc_html($name); ?></div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if ($show_name && $name !== '') : ?>
+                                    <div class="wps-text-xs wps-text-gray-700 wps-mt-2" style="text-align:center;"><?php echo esc_html($name); ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+<?php
+        wp_enqueue_script('wp-store-frontend');
+        return ob_get_clean();
     }
 
     public function render_thumbnail($atts = [])

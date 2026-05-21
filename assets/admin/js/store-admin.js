@@ -1,86 +1,136 @@
-jQuery(document).ready(function($) {
-    // --- Product Type Toggle ---
-    const $typeSelect = $('#_store_product_type');
-    const $weightRow = $('.cmb2-id--store-weight-kg');
-    const $fileRow = $('.cmb2-id--store-digital-file');
+jQuery(document).ready(function ($) {
+  let brandLogoFrame = null;
 
-    function toggleFields() {
-        const type = $typeSelect.val();
-        if (type === 'digital') {
-            $weightRow.hide();
-            $fileRow.show();
-        } else {
-            $weightRow.show();
-            $fileRow.hide();
-        }
+  $(document).on("click", ".wp-store-brand-logo-upload", function (e) {
+    e.preventDefault();
+
+    if (typeof wp === "undefined" || !wp.media) {
+      return;
     }
 
-    if ($typeSelect.length) {
-        $typeSelect.on('change', toggleFields);
-        toggleFields(); // Initial run
+    const $field = $(this).closest(".wp-store-brand-logo-field");
+    const $input = $field.find('input[type="hidden"]');
+    const $img = $field.find("img");
+    const $remove = $field.find(".wp-store-brand-logo-remove");
+
+    brandLogoFrame = wp.media({
+      title: "Pilih Logo Brand",
+      button: { text: "Pakai Logo" },
+      multiple: false,
+    });
+
+    brandLogoFrame.on("select", function () {
+      const attachment = brandLogoFrame
+        .state()
+        .get("selection")
+        .first()
+        .toJSON();
+      $input.val(attachment.id);
+      const url =
+        attachment.sizes &&
+        attachment.sizes.thumbnail &&
+        attachment.sizes.thumbnail.url
+          ? attachment.sizes.thumbnail.url
+          : attachment.url;
+      $img.attr("src", url).show();
+      $remove.show();
+    });
+
+    brandLogoFrame.open();
+  });
+
+  $(document).on("click", ".wp-store-brand-logo-remove", function (e) {
+    e.preventDefault();
+    const $field = $(this).closest(".wp-store-brand-logo-field");
+    $field.find('input[type="hidden"]').val("");
+    $field.find("img").attr("src", "").hide();
+    $(this).hide();
+  });
+
+  // --- Product Type Toggle ---
+  const $typeSelect = $("#_store_product_type");
+  const $weightRow = $(".cmb2-id--store-weight-kg");
+  const $fileRow = $(".cmb2-id--store-digital-file");
+
+  function toggleFields() {
+    const type = $typeSelect.val();
+    if (type === "digital") {
+      $weightRow.hide();
+      $fileRow.show();
+    } else {
+      $weightRow.show();
+      $fileRow.hide();
     }
+  }
 
-    // --- Tabs Implementation ---
-    const $metabox = $('#wp_store_product_detail_metabox');
-    if (!$metabox.length) return;
+  if ($typeSelect.length) {
+    $typeSelect.on("change", toggleFields);
+    toggleFields(); // Initial run
+  }
 
-    // Create tabs container
-    const $tabsContainer = $('<ul class="cmb-tabs"></ul>');
-    const $fieldList = $metabox.find('.cmb2-wrap > .cmb-field-list');
+  // --- Tabs Implementation ---
+  const $metabox = $("#wp_store_product_detail_metabox");
+  if (!$metabox.length) return;
 
-    // Make sure we have a field list to work with
-    if (!$fieldList.length) return;
-    
-    // Add tabs container before field list
-    $fieldList.before($tabsContainer);
+  // Create tabs container
+  const $tabsContainer = $('<ul class="cmb-tabs"></ul>');
+  const $fieldList = $metabox.find(".cmb2-wrap > .cmb-field-list");
 
-    // Find all title fields (which act as tab headers)
-    const $titles = $fieldList.find('.cmb-type-title');
-    
-    // Process each title to create a tab
-    $titles.each(function(index) {
-        const $titleRow = $(this);
-        const tabId = $titleRow.attr('id') || 'tab-' + index;
-        const tabName = $titleRow.find('.cmb2-metabox-title').text();
-        
-        // Create tab button
-        const $tab = $('<li class="cmb-tab" data-tab="' + tabId + '">' + tabName + '</li>');
-        $tabsContainer.append($tab);
+  // Make sure we have a field list to work with
+  if (!$fieldList.length) return;
 
-        // Hide the title row itself as it's now a tab
-        $titleRow.hide();
+  // Add tabs container before field list
+  $fieldList.before($tabsContainer);
 
-        // Group fields following this title until the next title
-        const $nextFields = $titleRow.nextUntil('.cmb-type-title');
-        
-        // Wrap them in a tab content div (we'll just use class for toggling)
-        $nextFields.addClass('tab-content tab-content-' + tabId);
-        
-        // If it's the first tab, activate it
-        if (index === 0) {
-            $tab.addClass('active');
-            $nextFields.show();
-        } else {
-            $nextFields.hide();
-        }
-    });
+  // Find all title fields (which act as tab headers)
+  const $titles = $fieldList.find(".cmb-type-title");
 
-    // Handle tab click
-    $tabsContainer.on('click', '.cmb-tab', function() {
-        const $this = $(this);
-        const tabId = $this.data('tab');
+  // Process each title to create a tab
+  $titles.each(function (index) {
+    const $titleRow = $(this);
+    const tabId = $titleRow.attr("id") || "tab-" + index;
+    const tabName = $titleRow.find(".cmb2-metabox-title").text();
 
-        // Toggle active tab state
-        $tabsContainer.find('.cmb-tab').removeClass('active');
-        $this.addClass('active');
+    // Create tab button
+    const $tab = $(
+      '<li class="cmb-tab" data-tab="' + tabId + '">' + tabName + "</li>",
+    );
+    $tabsContainer.append($tab);
 
-        // Toggle field visibility
-        $fieldList.find('.cmb-row').not('.cmb-type-title').hide(); // Hide all fields first
-        $fieldList.find('.tab-content-' + tabId).show(); // Show fields for this tab
-        
-        // Re-apply product type logic if we switched to a tab containing relevant fields
-        if (tabId === 'tab_general' || tabId === 'tab_shipping') {
-            toggleFields();
-        }
-    });
+    // Hide the title row itself as it's now a tab
+    $titleRow.hide();
+
+    // Group fields following this title until the next title
+    const $nextFields = $titleRow.nextUntil(".cmb-type-title");
+
+    // Wrap them in a tab content div (we'll just use class for toggling)
+    $nextFields.addClass("tab-content tab-content-" + tabId);
+
+    // If it's the first tab, activate it
+    if (index === 0) {
+      $tab.addClass("active");
+      $nextFields.show();
+    } else {
+      $nextFields.hide();
+    }
+  });
+
+  // Handle tab click
+  $tabsContainer.on("click", ".cmb-tab", function () {
+    const $this = $(this);
+    const tabId = $this.data("tab");
+
+    // Toggle active tab state
+    $tabsContainer.find(".cmb-tab").removeClass("active");
+    $this.addClass("active");
+
+    // Toggle field visibility
+    $fieldList.find(".cmb-row").not(".cmb-type-title").hide(); // Hide all fields first
+    $fieldList.find(".tab-content-" + tabId).show(); // Show fields for this tab
+
+    // Re-apply product type logic if we switched to a tab containing relevant fields
+    if (tabId === "tab_general" || tabId === "tab_shipping") {
+      toggleFields();
+    }
+  });
 });

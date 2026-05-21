@@ -9,6 +9,9 @@ class PostTypes
         add_action('init', [$this, 'register_product_type']);
         add_action('init', [$this, 'register_order_type']);
         add_action('init', [$this, 'register_coupon_type']);
+        add_action('init', [$this, 'register_brand_taxonomy']);
+        add_action('admin_init', [$this, 'register_brand_term_hooks']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_brand_admin_assets']);
     }
 
     public function register_product_type()
@@ -83,6 +86,143 @@ class PostTypes
         register_post_type('store_product', $args);
         add_rewrite_rule('^' . $archive_slug . '/?$', 'index.php?post_type=store_product', 'top');
         add_rewrite_rule('^' . $archive_slug . '/page/([0-9]+)/?$', 'index.php?post_type=store_product&paged=$matches[1]', 'top');
+    }
+
+    public function register_brand_taxonomy()
+    {
+        $labels = [
+            'name' => 'Brand',
+            'singular_name' => 'Brand',
+            'search_items' => 'Cari Brand',
+            'all_items' => 'Semua Brand',
+            'edit_item' => 'Edit Brand',
+            'update_item' => 'Update Brand',
+            'add_new_item' => 'Tambah Brand Baru',
+            'new_item_name' => 'Nama Brand Baru',
+            'menu_name' => 'Brand',
+        ];
+
+        register_taxonomy('store_product_brand', ['store_product'], [
+            'hierarchical' => false,
+            'labels' => $labels,
+            'show_ui' => true,
+            'show_admin_column' => true,
+            'query_var' => true,
+            'rewrite' => ['slug' => 'brand'],
+            'show_in_rest' => true,
+        ]);
+    }
+
+    public function register_brand_term_hooks()
+    {
+        add_action('store_product_brand_add_form_fields', [$this, 'render_brand_add_fields']);
+        add_action('store_product_brand_edit_form_fields', [$this, 'render_brand_edit_fields']);
+        add_action('created_store_product_brand', [$this, 'save_brand_fields'], 10, 2);
+        add_action('edited_store_product_brand', [$this, 'save_brand_fields'], 10, 2);
+        add_filter('manage_edit-store_product_brand_columns', [$this, 'add_brand_columns']);
+        add_filter('manage_store_product_brand_custom_column', [$this, 'render_brand_columns'], 10, 3);
+    }
+
+    public function enqueue_brand_admin_assets()
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (!$screen || ($screen->taxonomy ?? '') !== 'store_product_brand') {
+            return;
+        }
+
+        if (function_exists('wp_enqueue_media')) {
+            wp_enqueue_media();
+        }
+
+        wp_enqueue_script(
+            'wp-store-admin-js',
+            WP_STORE_URL . 'assets/admin/js/store-admin.js',
+            ['jquery'],
+            WP_STORE_VERSION,
+            true
+        );
+    }
+
+    public function render_brand_add_fields($taxonomy)
+    {
+        wp_nonce_field('wp_store_brand_logo', 'wp_store_brand_logo_nonce');
+        echo '<div class="form-field">';
+        echo '<label>Logo Brand</label>';
+        echo '<div class="wp-store-brand-logo-field">';
+        echo '<img src="" alt="" style="max-width:80px;height:auto;display:none;margin:0 0 8px;" />';
+        echo '<input type="hidden" id="wp_store_brand_logo_id" name="wp_store_brand_logo_id" value="" />';
+        echo '<button type="button" class="button wp-store-brand-logo-upload">Pilih Logo</button> ';
+        echo '<button type="button" class="button wp-store-brand-logo-remove" style="display:none;">Hapus</button>';
+        echo '</div>';
+        echo '<p class="description">Upload logo brand.</p>';
+        echo '</div>';
+    }
+
+    public function render_brand_edit_fields($term, $taxonomy)
+    {
+        $term_id = isset($term->term_id) ? (int) $term->term_id : 0;
+        $logo_id = (int) get_term_meta($term_id, '_store_brand_logo_id', true);
+        $src = $logo_id ? wp_get_attachment_image_url($logo_id, 'thumbnail') : '';
+
+        wp_nonce_field('wp_store_brand_logo', 'wp_store_brand_logo_nonce');
+        echo '<tr class="form-field">';
+        echo '<th scope="row"><label>Logo Brand</label></th>';
+        echo '<td>';
+        echo '<div class="wp-store-brand-logo-field">';
+        echo '<img src="' . esc_url($src ?: '') . '" alt="" style="max-width:80px;height:auto;' . ($src ? 'display:block' : 'display:none') . ';margin:0 0 8px;" />';
+        echo '<input type="hidden" id="wp_store_brand_logo_id" name="wp_store_brand_logo_id" value="' . esc_attr((string) $logo_id) . '" />';
+        echo '<button type="button" class="button wp-store-brand-logo-upload">Pilih Logo</button> ';
+        echo '<button type="button" class="button wp-store-brand-logo-remove" style="' . ($logo_id ? 'display:inline-block' : 'display:none') . ';">Hapus</button>';
+        echo '</div>';
+        echo '<p class="description">Upload logo brand.</p>';
+        echo '</td>';
+        echo '</tr>';
+    }
+
+    public function save_brand_fields($term_id, $tt_id)
+    {
+        if (!current_user_can('manage_categories')) {
+            return;
+        }
+
+        if (!isset($_POST['wp_store_brand_logo_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['wp_store_brand_logo_nonce'])), 'wp_store_brand_logo')) {
+            return;
+        }
+
+        $logo_id = isset($_POST['wp_store_brand_logo_id']) ? absint(wp_unslash($_POST['wp_store_brand_logo_id'])) : 0;
+        if ($logo_id > 0) {
+            update_term_meta((int) $term_id, '_store_brand_logo_id', $logo_id);
+        } else {
+            delete_term_meta((int) $term_id, '_store_brand_logo_id');
+        }
+    }
+
+    public function add_brand_columns($columns)
+    {
+        $new_columns = [];
+        foreach ($columns as $key => $label) {
+            if ($key === 'name') {
+                $new_columns['logo'] = 'Logo';
+            }
+            $new_columns[$key] = $label;
+        }
+        return $new_columns;
+    }
+
+    public function render_brand_columns($content, $column_name, $term_id)
+    {
+        if ($column_name !== 'logo') {
+            return $content;
+        }
+        $logo_id = (int) get_term_meta((int) $term_id, '_store_brand_logo_id', true);
+        if ($logo_id <= 0) {
+            return '—';
+        }
+        $src = wp_get_attachment_image_url($logo_id, 'thumbnail');
+        if (!$src) {
+            return '—';
+        }
+        return '<img src="' . esc_url($src) . '" alt="" style="width:32px;height:32px;object-fit:contain;" />';
     }
 
     public function register_order_type()

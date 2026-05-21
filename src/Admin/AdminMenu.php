@@ -16,7 +16,7 @@ class AdminMenu
     public function fix_parent_menu($parent_file)
     {
         global $current_screen;
-        if ($current_screen && $current_screen->taxonomy === 'store_product_cat') {
+        if ($current_screen && in_array($current_screen->taxonomy, ['store_product_cat', 'store_product_brand'], true)) {
             return 'wp-store';
         }
         return $parent_file;
@@ -25,8 +25,11 @@ class AdminMenu
     public function fix_submenu_menu($submenu_file)
     {
         global $current_screen;
-        if ($current_screen && $current_screen->taxonomy === 'store_product_cat') {
+        if ($current_screen && ($current_screen->taxonomy ?? '') === 'store_product_cat') {
             return 'edit-tags.php?taxonomy=store_product_cat&post_type=store_product';
+        }
+        if ($current_screen && ($current_screen->taxonomy ?? '') === 'store_product_brand') {
+            return 'edit-tags.php?taxonomy=store_product_brand&post_type=store_product';
         }
         return $submenu_file;
     }
@@ -73,6 +76,14 @@ class AdminMenu
             'Kategori',
             'manage_categories',
             'edit-tags.php?taxonomy=store_product_cat&post_type=store_product'
+        );
+
+        add_submenu_page(
+            'wp-store',
+            'Brand Produk',
+            'Brand',
+            'manage_categories',
+            'edit-tags.php?taxonomy=store_product_brand&post_type=store_product'
         );
     }
 
