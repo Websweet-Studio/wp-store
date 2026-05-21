@@ -143,7 +143,7 @@ class CustomerProfile
                         <?php echo wps_icon(['name' => 'cart', 'size' => 16, 'class' => 'wps-mr-2']); ?>Pesanan
                     </button>
                     <?php do_action('wp_store_profile_additional_tabs'); ?>
-                    <a href="<?php echo esc_url(wp_logout_url(site_url('/'))); ?>" class="wps-tab wps-ml-auto"><?php echo wps_icon(['name' => 'close', 'size' => 16, 'class' => 'wps-mr-2']); ?>Keluar</a>
+                    <a href="<?php echo esc_url(wp_logout_url(site_url('/'))); ?>" class="wps-tab wps-ml-auto"><?php echo wps_icon(['name' => 'logout', 'size' => 16, 'class' => 'wps-mr-2']); ?>Keluar</a>
                 </div>
                 <script>
                     (function() {
@@ -228,9 +228,10 @@ class CustomerProfile
                                         <span class="wps-mr-2"><?php echo wps_icon(['name' => 'spinner', 'size' => 16, 'class' => 'wps-mr-2']); ?></span>
                                     </template>
                                     <template x-if="!loading">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="wps-mr-2" viewBox="0 0 16 16">
-                                            <path d="M12 2h-2v3h2z" />
-                                            <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5V2.914a1.5 1.5 0 0 0-.44-1.06L14.147.439A1.5 1.5 0 0 0 13.086 0zM4 6a1 1 0 0 1-1-1V1h10v4a1 1 0 0 1-1 1zM3 9h10a1 1 0 0 1 1 1v5H2v-5a1 1 0 0 1 1-1" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save-icon lucide-save mr-2 wps-mr-2">
+                                            <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                                            <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" />
+                                            <path d="M7 3v4a1 1 0 0 0 1 1h7" />
                                         </svg>
                                     </template>
                                     <span x-show="!loading">Simpan Perubahan</span>

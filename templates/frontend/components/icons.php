@@ -63,6 +63,8 @@ if ($name === 'cart') {
     echo '<svg xmlns="http://www.w3.org/2000/svg" width="' . esc_attr($size) . '" height="' . esc_attr($size) . '" viewBox="0 0 24 24" fill="none" stroke="' . esc_attr($stroke) . '" stroke-width="' . esc_attr($sw) . '" stroke-linecap="round" stroke-linejoin="round" class="' . esc_attr($class) . '"><rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect><circle cx="12" cy="9" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="15" r="1"></circle></svg>';
 } elseif ($name === 'check') {
     echo '<svg xmlns="http://www.w3.org/2000/svg" width="' . esc_attr($size) . '" height="' . esc_attr($size) . '" viewBox="0 0 24 24" fill="none" stroke="' . esc_attr($stroke) . '" stroke-width="' . esc_attr($sw) . '" stroke-linecap="round" stroke-linejoin="round" class="' . esc_attr($class) . '"><path d="M20 6 9 17l-5-5"></path></svg>';
+} elseif ($name === 'logout') {
+    echo '<svg xmlns="http://www.w3.org/2000/svg" width="' . esc_attr($size) . '" height="' . esc_attr($size) . '" viewBox="0 0 24 24" fill="none" stroke="' . esc_attr($stroke) . '" stroke-width="' . esc_attr($sw) . '" stroke-linecap="round" stroke-linejoin="round" class="' . esc_attr($class) . '"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>';
 } else {
     echo '';
 }
