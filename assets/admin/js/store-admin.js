@@ -1,5 +1,6 @@
 jQuery(document).ready(function ($) {
   let brandLogoFrame = null;
+  let catImageFrame = null;
 
   $(document).on("click", ".wp-store-brand-logo-upload", function (e) {
     e.preventDefault();
@@ -42,6 +43,52 @@ jQuery(document).ready(function ($) {
   $(document).on("click", ".wp-store-brand-logo-remove", function (e) {
     e.preventDefault();
     const $field = $(this).closest(".wp-store-brand-logo-field");
+    $field.find('input[type="hidden"]').val("");
+    $field.find("img").attr("src", "").hide();
+    $(this).hide();
+  });
+
+  $(document).on("click", ".wp-store-cat-image-upload", function (e) {
+    e.preventDefault();
+
+    if (typeof wp === "undefined" || !wp.media) {
+      return;
+    }
+
+    const $field = $(this).closest(".wp-store-cat-image-field");
+    const $input = $field.find('input[type="hidden"]');
+    const $img = $field.find("img");
+    const $remove = $field.find(".wp-store-cat-image-remove");
+
+    catImageFrame = wp.media({
+      title: "Pilih Gambar Kategori",
+      button: { text: "Pakai Gambar" },
+      multiple: false,
+    });
+
+    catImageFrame.on("select", function () {
+      const attachment = catImageFrame
+        .state()
+        .get("selection")
+        .first()
+        .toJSON();
+      $input.val(attachment.id);
+      const url =
+        attachment.sizes &&
+        attachment.sizes.thumbnail &&
+        attachment.sizes.thumbnail.url
+          ? attachment.sizes.thumbnail.url
+          : attachment.url;
+      $img.attr("src", url).show();
+      $remove.show();
+    });
+
+    catImageFrame.open();
+  });
+
+  $(document).on("click", ".wp-store-cat-image-remove", function (e) {
+    e.preventDefault();
+    const $field = $(this).closest(".wp-store-cat-image-field");
     $field.find('input[type="hidden"]').val("");
     $field.find("img").attr("src", "").hide();
     $(this).hide();

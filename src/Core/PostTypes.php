@@ -11,6 +11,7 @@ class PostTypes
         add_action('init', [$this, 'register_coupon_type']);
         add_action('init', [$this, 'register_brand_taxonomy']);
         add_action('admin_init', [$this, 'register_brand_term_hooks']);
+        add_action('admin_init', [$this, 'register_category_term_hooks']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_brand_admin_assets']);
     }
 
@@ -126,7 +127,8 @@ class PostTypes
     public function enqueue_brand_admin_assets()
     {
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-        if (!$screen || ($screen->taxonomy ?? '') !== 'store_product_brand') {
+        $tax = $screen ? ($screen->taxonomy ?? '') : '';
+        if (!$screen || !in_array($tax, ['store_product_brand', 'store_product_cat'], true)) {
             return;
         }
 
@@ -223,6 +225,98 @@ class PostTypes
             return '—';
         }
         return '<img src="' . esc_url($src) . '" alt="" style="width:32px;height:32px;object-fit:contain;" />';
+    }
+
+    public function register_category_term_hooks()
+    {
+        add_action('store_product_cat_add_form_fields', [$this, 'render_category_add_fields']);
+        add_action('store_product_cat_edit_form_fields', [$this, 'render_category_edit_fields']);
+        add_action('created_store_product_cat', [$this, 'save_category_fields'], 10, 2);
+        add_action('edited_store_product_cat', [$this, 'save_category_fields'], 10, 2);
+        add_filter('manage_edit-store_product_cat_columns', [$this, 'add_category_columns']);
+        add_filter('manage_store_product_cat_custom_column', [$this, 'render_category_columns'], 10, 3);
+    }
+
+    public function render_category_add_fields($taxonomy)
+    {
+        wp_nonce_field('wp_store_cat_image', 'wp_store_cat_image_nonce');
+        echo '<div class="form-field">';
+        echo '<label>Gambar Kategori</label>';
+        echo '<div class="wp-store-cat-image-field">';
+        echo '<img src="" alt="" style="max-width:80px;height:auto;display:none;margin:0 0 8px;" />';
+        echo '<input type="hidden" id="wp_store_cat_image_id" name="wp_store_cat_image_id" value="" />';
+        echo '<button type="button" class="button wp-store-cat-image-upload">Pilih Gambar</button> ';
+        echo '<button type="button" class="button wp-store-cat-image-remove" style="display:none;">Hapus</button>';
+        echo '</div>';
+        echo '<p class="description">Upload gambar kategori.</p>';
+        echo '</div>';
+    }
+
+    public function render_category_edit_fields($term, $taxonomy)
+    {
+        $term_id = isset($term->term_id) ? (int) $term->term_id : 0;
+        $image_id = (int) get_term_meta($term_id, '_store_cat_image_id', true);
+        $src = $image_id ? wp_get_attachment_image_url($image_id, 'thumbnail') : '';
+
+        wp_nonce_field('wp_store_cat_image', 'wp_store_cat_image_nonce');
+        echo '<tr class="form-field">';
+        echo '<th scope="row"><label>Gambar Kategori</label></th>';
+        echo '<td>';
+        echo '<div class="wp-store-cat-image-field">';
+        echo '<img src="' . esc_url($src ?: '') . '" alt="" style="max-width:80px;height:auto;' . ($src ? 'display:block' : 'display:none') . ';margin:0 0 8px;" />';
+        echo '<input type="hidden" id="wp_store_cat_image_id" name="wp_store_cat_image_id" value="' . esc_attr((string) $image_id) . '" />';
+        echo '<button type="button" class="button wp-store-cat-image-upload">Pilih Gambar</button> ';
+        echo '<button type="button" class="button wp-store-cat-image-remove" style="' . ($image_id ? 'display:inline-block' : 'display:none') . ';">Hapus</button>';
+        echo '</div>';
+        echo '<p class="description">Upload gambar kategori.</p>';
+        echo '</td>';
+        echo '</tr>';
+    }
+
+    public function save_category_fields($term_id, $tt_id)
+    {
+        if (!current_user_can('manage_categories')) {
+            return;
+        }
+
+        if (!isset($_POST['wp_store_cat_image_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['wp_store_cat_image_nonce'])), 'wp_store_cat_image')) {
+            return;
+        }
+
+        $image_id = isset($_POST['wp_store_cat_image_id']) ? absint(wp_unslash($_POST['wp_store_cat_image_id'])) : 0;
+        if ($image_id > 0) {
+            update_term_meta((int) $term_id, '_store_cat_image_id', $image_id);
+        } else {
+            delete_term_meta((int) $term_id, '_store_cat_image_id');
+        }
+    }
+
+    public function add_category_columns($columns)
+    {
+        $new_columns = [];
+        foreach ($columns as $key => $label) {
+            if ($key === 'name') {
+                $new_columns['image'] = 'Gambar';
+            }
+            $new_columns[$key] = $label;
+        }
+        return $new_columns;
+    }
+
+    public function render_category_columns($content, $column_name, $term_id)
+    {
+        if ($column_name !== 'image') {
+            return $content;
+        }
+        $image_id = (int) get_term_meta((int) $term_id, '_store_cat_image_id', true);
+        if ($image_id <= 0) {
+            return '—';
+        }
+        $src = wp_get_attachment_image_url($image_id, 'thumbnail');
+        if (!$src) {
+            return '—';
+        }
+        return '<img src="' . esc_url($src) . '" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:4px;" />';
     }
 
     public function register_order_type()
