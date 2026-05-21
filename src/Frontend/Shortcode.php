@@ -303,11 +303,30 @@ class Shortcode
         $origin_subdistrict = isset($settings['shipping_origin_subdistrict']) ? (string) $settings['shipping_origin_subdistrict'] : '';
         $active_couriers = $settings['shipping_couriers'] ?? ['jne', 'sicepat', 'ide'];
         $nonce = wp_create_nonce('wp_rest');
+        $bank_accounts = [];
+        if (isset($settings['store_bank_accounts']) && is_array($settings['store_bank_accounts'])) {
+            $bank_accounts = $settings['store_bank_accounts'];
+        } else {
+            $legacy_bank = [
+                'bank_name' => isset($settings['bank_name']) ? (string) $settings['bank_name'] : '',
+                'bank_account' => isset($settings['bank_account']) ? (string) $settings['bank_account'] : '',
+                'bank_holder' => isset($settings['bank_holder']) ? (string) $settings['bank_holder'] : '',
+            ];
+            if ($legacy_bank['bank_name'] !== '' || $legacy_bank['bank_account'] !== '' || $legacy_bank['bank_holder'] !== '') {
+                $bank_accounts[] = $legacy_bank;
+            }
+        }
+        $qris_id = isset($settings['qris_image_id']) ? absint($settings['qris_image_id']) : 0;
+        $qris_src = $qris_id ? wp_get_attachment_image_url($qris_id, 'medium') : '';
+        $qris_label = isset($settings['qris_label']) ? (string) $settings['qris_label'] : 'QRIS';
         return Template::render('pages/checkout', [
             'currency' => $currency,
             'origin_subdistrict' => $origin_subdistrict,
             'active_couriers' => $active_couriers,
-            'nonce' => $nonce
+            'nonce' => $nonce,
+            'bank_accounts' => $bank_accounts,
+            'qris_src' => $qris_src,
+            'qris_label' => $qris_label,
         ]);
     }
 

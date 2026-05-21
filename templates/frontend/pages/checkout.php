@@ -6,6 +6,11 @@
         };
     }
 </script>
+<?php
+$bank_accounts = isset($bank_accounts) && is_array($bank_accounts) ? $bank_accounts : [];
+$qris_src = isset($qris_src) ? (string) $qris_src : '';
+$qris_label = isset($qris_label) ? (string) $qris_label : 'QRIS';
+?>
 <script>
     window.wpStoreCheckout = function() {
         return {
@@ -779,6 +784,37 @@
                                         @click="paymentMethod = 'qris'">
                                         <span class="wps-text-sm wps-text-gray-900">QRIS</span>
                                     </button>
+                                </div>
+
+                                <div class="wps-mt-3" x-show="paymentMethod === 'transfer_bank'" x-cloak>
+                                    <?php if (!empty($bank_accounts)) : ?>
+                                        <?php foreach ($bank_accounts as $acc) : ?>
+                                            <div class="wps-card wps-p-4 wps-mb-2">
+                                                <div class="wps-text-sm wps-text-gray-900 wps-font-medium" style="margin-bottom:6px;"><?php echo esc_html($acc['bank_name'] ?? ''); ?></div>
+                                                <div class="wps-text-sm wps-text-gray-700">
+                                                    <div>No. Rekening: <span class="wps-font-medium"><?php echo esc_html($acc['bank_account'] ?? ''); ?></span></div>
+                                                    <div>Atas Nama: <span class="wps-font-medium"><?php echo esc_html($acc['bank_holder'] ?? ''); ?></span></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <div class="wps-text-xs wps-text-gray-500 wps-mt-2">Gunakan nomor pesanan sebagai berita transfer setelah pesanan dibuat.</div>
+                                    <?php else : ?>
+                                        <div class="wps-text-sm wps-text-gray-500">Rekening bank belum diatur.</div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="wps-mt-3" x-show="paymentMethod === 'qris'" x-cloak>
+                                    <?php if ($qris_src) : ?>
+                                        <div class="wps-p-4" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; text-align:center;">
+                                            <div class="wps-text-sm wps-text-gray-900 wps-font-medium" style="margin-bottom:8px;"><?php echo esc_html($qris_label ?: 'QRIS'); ?></div>
+                                            <div class="wps-mt-2">
+                                                <img src="<?php echo esc_url($qris_src); ?>" alt="QRIS" style="width:180px;height:180px; object-fit:contain;">
+                                            </div>
+                                            <div class="wps-text-xs wps-text-gray-500 wps-mt-2">Scan untuk membayar via QRIS.</div>
+                                        </div>
+                                    <?php else : ?>
+                                        <div class="wps-text-sm wps-text-gray-500">QRIS belum diatur.</div>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="wps-mt-2" x-show="!loggedIn" id="checkout-captcha" @input="recomputeAllow()" @change="recomputeAllow()">
