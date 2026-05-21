@@ -129,6 +129,14 @@ class Shortcode
                 if ($id > 0) $cats[] = $id;
             }
         }
+        $brands = [];
+        if (isset($_GET['brands'])) {
+            $raw = is_array($_GET['brands']) ? $_GET['brands'] : [$_GET['brands']];
+            foreach ($raw as $b) {
+                $id = absint($b);
+                if ($id > 0) $brands[] = $id;
+            }
+        }
         $labels = [];
         if (isset($_GET['labels'])) {
             $raw = is_array($_GET['labels']) ? $_GET['labels'] : [$_GET['labels']];
@@ -203,6 +211,35 @@ class Shortcode
                         'terms' => [(int) $term->term_id]
                     ]
                 ];
+            }
+        }
+        if (!empty($brands)) {
+            if (!isset($args['tax_query']) || !is_array($args['tax_query'])) {
+                $args['tax_query'] = [];
+            }
+            $args['tax_query'][] = [
+                'taxonomy' => 'store_product_brand',
+                'field' => 'term_id',
+                'terms' => $brands
+            ];
+            if (count($args['tax_query']) > 1 && !isset($args['tax_query']['relation'])) {
+                $args['tax_query'] = ['relation' => 'AND'] + $args['tax_query'];
+            }
+        }
+        if (empty($brands) && is_tax('store_product_brand')) {
+            $term = get_queried_object();
+            if ($term && isset($term->term_id)) {
+                if (!isset($args['tax_query']) || !is_array($args['tax_query'])) {
+                    $args['tax_query'] = [];
+                }
+                $args['tax_query'][] = [
+                    'taxonomy' => 'store_product_brand',
+                    'field' => 'term_id',
+                    'terms' => [(int) $term->term_id]
+                ];
+                if (count($args['tax_query']) > 1 && !isset($args['tax_query']['relation'])) {
+                    $args['tax_query'] = ['relation' => 'AND'] + $args['tax_query'];
+                }
             }
         }
         if ($sort === 'az') {
@@ -459,6 +496,26 @@ class Shortcode
                 ];
             }
         }
+        $brand_terms = get_terms([
+            'taxonomy' => 'store_product_brand',
+            'hide_empty' => false,
+        ]);
+        $brands_list = [];
+        if (!is_wp_error($brand_terms) && is_array($brand_terms)) {
+            foreach ($brand_terms as $t) {
+                $term_id = (int) ($t->term_id ?? 0);
+                if ($term_id <= 0) {
+                    continue;
+                }
+                $logo_id = (int) get_term_meta($term_id, '_store_brand_logo_id', true);
+                $logo = $logo_id ? wp_get_attachment_image_url($logo_id, 'thumbnail') : '';
+                $brands_list[] = [
+                    'id' => $term_id,
+                    'name' => (string) ($t->name ?? ''),
+                    'logo' => $logo ? $logo : null,
+                ];
+            }
+        }
         global $wpdb;
         $min_price_global = 0.0;
         $max_price_global = 0.0;
@@ -513,6 +570,7 @@ class Shortcode
             'min_price' => isset($_GET['min_price']) ? (float) $_GET['min_price'] : '',
             'max_price' => isset($_GET['max_price']) ? (float) $_GET['max_price'] : '',
             'cats' => [],
+            'brands' => [],
             'labels' => [],
         ];
         if (isset($_GET['cats'])) {
@@ -528,6 +586,22 @@ class Shortcode
                 $tid = (int) $term->term_id;
                 if ($tid > 0) {
                     $current['cats'][] = $tid;
+                }
+            }
+        }
+        if (isset($_GET['brands'])) {
+            $raw = is_array($_GET['brands']) ? $_GET['brands'] : [$_GET['brands']];
+            foreach ($raw as $b) {
+                $id = absint($b);
+                if ($id > 0) $current['brands'][] = $id;
+            }
+        }
+        if (empty($current['brands']) && is_tax('store_product_brand')) {
+            $term = get_queried_object();
+            if ($term && isset($term->term_id)) {
+                $tid = (int) $term->term_id;
+                if ($tid > 0) {
+                    $current['brands'][] = $tid;
                 }
             }
         }
@@ -559,8 +633,19 @@ class Shortcode
                 }
             }
         }
+        $locked_brands = [];
+        if (is_tax('store_product_brand')) {
+            $term = get_queried_object();
+            if ($term && isset($term->term_id)) {
+                $tid = (int) $term->term_id;
+                if ($tid > 0) {
+                    $locked_brands[] = $tid;
+                }
+            }
+        }
         return Template::render('components/filters', [
             'categories' => $categories,
+            'brands' => $brands_list,
             'current' => $current,
             'show_labels' => $show_labels,
             'reset_url' => $reset_url,
@@ -568,6 +653,7 @@ class Shortcode
             'price_max_global' => $max_price_global,
             'price_avg_global' => $avg_price_global,
             'locked_cats' => $locked_cats,
+            'locked_brands' => $locked_brands,
         ]);
     }
 
@@ -609,7 +695,7 @@ class Shortcode
                 </div>
             </template>
         </div>
-<?php
+    <?php
         return ob_get_clean();
     }
 
@@ -792,7 +878,7 @@ class Shortcode
         $group_cells = $per_row > 1 ? $per_row : 0;
 
         ob_start();
-?>
+    ?>
         <div class="wps-products-carousel wps-brand-carousel"
             data-wps-carousel="1"
             data-cell-align="<?php echo esc_attr($cell_align ?: 'left'); ?>"
@@ -1189,6 +1275,14 @@ class Shortcode
                     if ($id > 0) $cats[] = $id;
                 }
             }
+            $brands = [];
+            if (isset($_GET['brands'])) {
+                $raw = is_array($_GET['brands']) ? $_GET['brands'] : [$_GET['brands']];
+                foreach ($raw as $b) {
+                    $id = absint($b);
+                    if ($id > 0) $brands[] = $id;
+                }
+            }
             $labels = [];
             if (isset($_GET['labels'])) {
                 $raw = is_array($_GET['labels']) ? $_GET['labels'] : [$_GET['labels']];
@@ -1244,6 +1338,51 @@ class Shortcode
                         'terms' => $cats
                     ]
                 ]);
+            }
+            if (empty($cats) && is_tax('store_product_cat')) {
+                $term = get_queried_object();
+                if ($term && isset($term->term_id)) {
+                    $query->set('tax_query', [
+                        [
+                            'taxonomy' => 'store_product_cat',
+                            'field' => 'term_id',
+                            'terms' => [(int) $term->term_id]
+                        ]
+                    ]);
+                }
+            }
+            if (!empty($brands)) {
+                $tq = $query->get('tax_query');
+                if (!is_array($tq)) {
+                    $tq = [];
+                }
+                $tq[] = [
+                    'taxonomy' => 'store_product_brand',
+                    'field' => 'term_id',
+                    'terms' => $brands
+                ];
+                if (count($tq) > 1 && !isset($tq['relation'])) {
+                    $tq = ['relation' => 'AND'] + $tq;
+                }
+                $query->set('tax_query', $tq);
+            }
+            if (empty($brands) && is_tax('store_product_brand')) {
+                $term = get_queried_object();
+                if ($term && isset($term->term_id)) {
+                    $tq = $query->get('tax_query');
+                    if (!is_array($tq)) {
+                        $tq = [];
+                    }
+                    $tq[] = [
+                        'taxonomy' => 'store_product_brand',
+                        'field' => 'term_id',
+                        'terms' => [(int) $term->term_id]
+                    ];
+                    if (count($tq) > 1 && !isset($tq['relation'])) {
+                        $tq = ['relation' => 'AND'] + $tq;
+                    }
+                    $query->set('tax_query', $tq);
+                }
             }
             if ($sort === 'az') {
                 $query->set('orderby', 'title');

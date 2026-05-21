@@ -1,6 +1,7 @@
 <?php
 $categories = isset($categories) && is_array($categories) ? $categories : [];
-$current = isset($current) && is_array($current) ? $current : ['sort' => '', 'min_price' => '', 'max_price' => '', 'cats' => [], 'labels' => []];
+$brands = isset($brands) && is_array($brands) ? $brands : [];
+$current = isset($current) && is_array($current) ? $current : ['sort' => '', 'min_price' => '', 'max_price' => '', 'cats' => [], 'brands' => [], 'labels' => []];
 $reset_url = isset($reset_url) ? (string) $reset_url : '';
 $show_labels = isset($show_labels) ? (bool) $show_labels : true;
 ?>
@@ -64,6 +65,29 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
         <?php endforeach; ?>
       </div>
     </div>
+    <?php if (!empty($brands)): ?>
+      <div class="wps-mt-3">
+        <div class="wps-label">Brand</div>
+        <div class="" style="gap:8px;">
+          <?php foreach ($brands as $brand): ?>
+            <?php
+            $bid = (int) ($brand['id'] ?? 0);
+            $bname = (string) ($brand['name'] ?? '');
+            $blogo = is_string($brand['logo'] ?? null) ? (string) $brand['logo'] : '';
+            ?>
+            <?php if ($bid > 0): ?>
+              <label class="wps-checkbox-label wps-display-block">
+                <input type="checkbox" class="wps-checkbox" name="brands[]" :value="<?php echo esc_attr($bid); ?>" x-model="brands" @change="update" :disabled="isBrandLocked(<?php echo esc_attr($bid); ?>)" <?php echo in_array($bid, $current['brands'] ?? [], true) ? 'checked' : ''; ?>>
+                <?php if ($blogo): ?>
+                  <img src="<?php echo esc_url($blogo); ?>" alt="<?php echo esc_attr($bname); ?>" style="width:18px;height:18px;object-fit:contain;margin-right:6px;vertical-align:middle;">
+                <?php endif; ?>
+                <span class="wps-text-sm wps-text-gray-900"><?php echo esc_html($bname); ?></span>
+              </label>
+            <?php endif; ?>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endif; ?>
     <?php if ($show_labels): ?>
       <div class="wps-mt-3">
         <div class="wps-label">Label</div>
@@ -98,14 +122,17 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
       price_min_bound: <?php echo isset($price_min_global) ? (float) $price_min_global : 0; ?>,
       price_max_bound: <?php echo isset($price_max_global) ? (float) $price_max_global : 0; ?>,
       cats: <?php echo wp_json_encode(array_values($current['cats'] ?? [])); ?>,
+      brands: <?php echo wp_json_encode(array_values($current['brands'] ?? [])); ?>,
       labels: <?php echo wp_json_encode(array_values($current['labels'] ?? [])); ?>,
       locked_cats: <?php echo wp_json_encode(isset($locked_cats) ? array_values($locked_cats) : []); ?>,
+      locked_brands: <?php echo wp_json_encode(isset($locked_brands) ? array_values($locked_brands) : []); ?>,
       updating: false,
       _updateTimer: null,
       initializing: true,
       init() {
         this.parseQueryIntoState();
         this.enforceLockedCats();
+        this.enforceLockedBrands();
         if (this.min_price === '' || isNaN(this.min_price)) this.min_price = this.price_min_bound;
         if (this.max_price === '' || isNaN(this.max_price)) this.max_price = this.price_max_bound;
         this.clampPrices();
@@ -120,6 +147,10 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
         });
         this.$watch('cats', () => {
           this.enforceLockedCats();
+          this.update();
+        });
+        this.$watch('brands', () => {
+          this.enforceLockedBrands();
           this.update();
         });
         this.$watch('labels', () => this.update());
@@ -147,6 +178,7 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
                 url.searchParams.has('max_price') ||
                 url.searchParams.has('shop_page') ||
                 (url.searchParams.getAll('cats[]').length > 0) ||
+                (url.searchParams.getAll('brands[]').length > 0) ||
                 (url.searchParams.getAll('labels[]').length > 0);
               const isPaginationPath = /\/page\/\d+\/?/.test(url.pathname);
               if (sameBase && (hasFilterParams || isPaginationPath)) {
@@ -188,6 +220,22 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
         if (!Number.isFinite(n)) return false;
         return Array.isArray(this.locked_cats) && this.locked_cats.map((m) => parseInt(m, 10)).includes(n);
       },
+      enforceLockedBrands() {
+        const base = Array.isArray(this.brands) ? this.brands.map((n) => parseInt(n, 10)).filter((n) => Number.isFinite(n)) : [];
+        const lock = Array.isArray(this.locked_brands) ? this.locked_brands.map((n) => parseInt(n, 10)).filter((n) => Number.isFinite(n)) : [];
+        const set = new Set(base.concat(lock));
+        const next = Array.from(set).sort((a, b) => a - b);
+        const cur = base.slice().sort((a, b) => a - b);
+        const equal = next.length === cur.length && next.every((v, i) => v === cur[i]);
+        if (!equal) {
+          this.brands = next;
+        }
+      },
+      isBrandLocked(id) {
+        const n = parseInt(id, 10);
+        if (!Number.isFinite(n)) return false;
+        return Array.isArray(this.locked_brands) && this.locked_brands.map((m) => parseInt(m, 10)).includes(n);
+      },
       formatCurrency(v) {
         const n = parseFloat(v);
         if (!Number.isFinite(n)) return 'Rp 0';
@@ -201,6 +249,10 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
         (Array.isArray(this.cats) ? this.cats : []).forEach((c) => {
           const n = parseInt(c, 10);
           if (Number.isFinite(n) && n > 0) p.append('cats[]', String(n));
+        });
+        (Array.isArray(this.brands) ? this.brands : []).forEach((b) => {
+          const n = parseInt(b, 10);
+          if (Number.isFinite(n) && n > 0) p.append('brands[]', String(n));
         });
         (Array.isArray(this.labels) ? this.labels : []).forEach((l) => {
           const s = String(l).toLowerCase();
@@ -220,9 +272,12 @@ $show_labels = isset($show_labels) ? (bool) $show_labels : true;
           if (mx !== null) this.max_price = parseFloat(mx);
           const cats = qs.getAll('cats[]').map((v) => parseInt(v, 10)).filter((n) => Number.isFinite(n) && n > 0);
           if (cats.length) this.cats = cats;
+          const brands = qs.getAll('brands[]').map((v) => parseInt(v, 10)).filter((n) => Number.isFinite(n) && n > 0);
+          if (brands.length) this.brands = brands;
           const labels = qs.getAll('labels[]').map((v) => String(v).toLowerCase()).filter((s) => ['best', 'limited', 'new'].includes(s));
           if (labels.length) this.labels = labels;
           this.enforceLockedCats();
+          this.enforceLockedBrands();
           this.clampPrices();
         } catch (e) {}
       },
