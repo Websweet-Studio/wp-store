@@ -248,7 +248,7 @@ class CustomerProfile
                     <div class="wps-card wps-p-6">
                         <div class="wps-flex wps-justify-between wps-items-center wps-mb-6">
                             <h2 class="wps-text-lg wps-font-medium wps-text-gray-900">Daftar Alamat</h2>
-                            <button @click="resetAddressForm(); isEditingAddress = true" class="wps-btn wps-btn-primary">
+                            <button type="button" @click="resetAddressForm(); isEditingAddress = true" class="wps-btn wps-btn-primary">
                                 <svg class="wps-w-5 wps-h-5" style="width: 20px; height: 20px; margin-right: 5px;" fill="none" stroke="#fff" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
@@ -277,11 +277,11 @@ class CustomerProfile
                                             </p>
                                         </div>
                                         <div class="wps-flex wps-space-x-2">
-                                            <button @click="editAddress(addr)" class="wps-btn wps-btn-secondary wps-text-sm" style="padding: 0.25rem 0.5rem;">
+                                            <button type="button" @click="editAddress(addr)" class="wps-btn wps-btn-secondary wps-text-sm" style="padding: 0.25rem 0.5rem;">
                                                 <span><?php echo wps_icon(['name' => 'sliders2', 'size' => 16, 'class' => 'wps-mr-2']); ?></span>
                                                 <span>Edit</span>
                                             </button>
-                                            <button @click="deleteAddress(addr.id)" class="wps-btn wps-btn-danger wps-text-sm" style="padding: 0.25rem 0.5rem;">
+                                            <button type="button" @click="deleteAddress(addr.id)" class="wps-btn wps-btn-danger wps-text-sm" style="padding: 0.25rem 0.5rem;">
                                                 <span><?php echo wps_icon(['name' => 'trash', 'size' => 16, 'class' => 'wps-mr-2']); ?></span>
                                                 <span>Hapus</span>
                                             </button>
@@ -298,22 +298,22 @@ class CustomerProfile
                     <div class="wps-card">
                         <div class="wps-p-6 wps-mb-0 border-b border-gray-200 wps-flex wps-justify-between wps-items-center">
                             <h2 class="wps-text-lg wps-font-medium wps-text-gray-900" x-text="addressForm.id ? 'Edit Alamat' : 'Tambah Alamat Baru'"></h2>
-                            <button @click="cancelEdit()" class="wps-btn-icon wps-text-amber-600 wps-hover-text-amber-700" title="Tutup">
+                            <button type="button" @click="cancelEdit()" class="wps-btn-icon wps-text-amber-600 wps-hover-text-amber-700" title="Tutup">
                                 <svg class="wps-icon-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
                         </div>
                         <div class="wps-p-6">
-                            <form @submit.prevent="saveAddress">
+                            <div>
                                 <div class="wps-form-group">
                                     <label class="wps-label">Label Alamat</label>
-                                    <input type="text" x-model="addressForm.label" placeholder="Contoh: Rumah, Kantor" required class="wps-input">
+                                    <input type="text" x-model="addressForm.label" placeholder="Contoh: Rumah, Kantor" required class="wps-input" autocomplete="one-time-code">
                                 </div>
 
                                 <div class="wps-form-group">
                                     <label class="wps-label">Provinsi</label>
-                                    <select x-model="addressForm.province_id" @change="onProvinceChange()" class="wps-select" :disabled="isLoadingProvinces">
+                                    <select x-model="addressForm.province_id" @change="onProvinceChange()" class="wps-select" :disabled="isLoadingProvinces" autocomplete="one-time-code">
                                         <option value="">Pilih Provinsi</option>
                                         <template x-for="prov in provinces" :key="prov.province_id">
                                             <option :value="prov.province_id" x-text="prov.province"></option>
@@ -325,7 +325,7 @@ class CustomerProfile
                                 <div class="wps-grid wps-grid-cols-2 wps-gap-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                     <div class="wps-form-group">
                                         <label class="wps-label">Kota/Kabupaten</label>
-                                        <select x-model="addressForm.city_id" @change="onCityChange()" class="wps-select" :disabled="!addressForm.province_id || isLoadingCities">
+                                        <select x-model="addressForm.city_id" @change="onCityChange()" class="wps-select" :disabled="!addressForm.province_id || isLoadingCities" autocomplete="one-time-code">
                                             <option value="">Pilih Kota/Kabupaten</option>
                                             <template x-for="city in cities" :key="city.city_id">
                                                 <option :value="String(city.city_id)" x-text="city.type + ' ' + city.city_name" :selected="city.city_id == addressForm.city_id"></option>
@@ -336,7 +336,7 @@ class CustomerProfile
 
                                     <div class="wps-form-group">
                                         <label class="wps-label">Kecamatan</label>
-                                        <select x-model="addressForm.subdistrict_id" @change="onSubdistrictChange()" class="wps-select" :disabled="!addressForm.city_id || isLoadingSubdistricts">
+                                        <select x-model="addressForm.subdistrict_id" @change="onSubdistrictChange()" class="wps-select" :disabled="!addressForm.city_id || isLoadingSubdistricts" autocomplete="one-time-code">
                                             <option value="">Pilih Kecamatan</option>
                                             <template x-for="sub in subdistricts" :key="sub.subdistrict_id">
                                                 <option :value="String(sub.subdistrict_id)" x-text="sub.subdistrict_name" :selected="sub.subdistrict_id == addressForm.subdistrict_id"></option>
@@ -348,17 +348,17 @@ class CustomerProfile
 
                                 <div class="wps-form-group">
                                     <label class="wps-label">Kode Pos</label>
-                                    <input type="text" x-model="addressForm.postal_code" required class="wps-input">
+                                    <input type="text" x-model="addressForm.postal_code" required class="wps-input" autocomplete="one-time-code">
                                 </div>
 
                                 <div class="wps-form-group">
                                     <label class="wps-label">Alamat Lengkap</label>
-                                    <textarea x-model="addressForm.address" required rows="3" class="wps-textarea"></textarea>
+                                    <textarea x-model="addressForm.address" required rows="3" class="wps-textarea" autocomplete="one-time-code"></textarea>
                                 </div>
 
                                 <div class="wps-flex wps-justify-between wps-items-center wps-mt-6">
                                     <button type="button" @click="cancelEdit()" class="wps-btn wps-btn-secondary">Batal</button>
-                                    <button type="submit" class="wps-btn wps-btn-primary" :disabled="loading">
+                                    <button type="button" class="wps-btn wps-btn-primary" :disabled="loading" @click="saveAddress()">
                                         <template x-if="loading">
                                             <span class="wps-mr-2"><?php echo wps_icon(['name' => 'spinner', 'size' => 16, 'class' => 'wps-mr-2']); ?></span>
                                         </template>
@@ -371,7 +371,7 @@ class CustomerProfile
                                         <span x-show="!loading">Simpan Alamat</span>
                                     </button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -452,6 +452,7 @@ class CustomerProfile
                     },
                     addresses: [],
                     isEditingAddress: false,
+                    _blurAddressTimer: null,
 
                     // Address Form Data
                     addressForm: {
@@ -486,6 +487,17 @@ class CustomerProfile
                             const url = new URL(window.location);
                             url.searchParams.set('tab', value);
                             window.history.pushState({}, '', url);
+                        });
+
+                        this.$watch('isEditingAddress', (value) => {
+                            if (!value) return;
+                            clearTimeout(this._blurAddressTimer);
+                            this._blurAddressTimer = setTimeout(() => {
+                                try {
+                                    const el = document.activeElement;
+                                    if (el && typeof el.blur === 'function') el.blur();
+                                } catch (e) {}
+                            }, 50);
                         });
 
                         this.$watch('addressForm.city_id', async (val) => {
