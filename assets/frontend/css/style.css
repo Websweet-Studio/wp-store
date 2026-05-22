@@ -739,7 +739,92 @@ button.wps-btn-dark {
 .wps-img-320 {
   width: 100%;
   height: 320px;
+  object-fit: cover;
+}
+
+body.wps-lightbox-open {
+  overflow: hidden;
+}
+.wps-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: saturate(160%) blur(6px);
+}
+.wps-lightbox.is-open {
+  display: flex;
+}
+.wps-lightbox__panel {
+  position: relative;
+  width: min(1100px, 96vw);
+  height: min(86vh, 820px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wps-lightbox__img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  border-radius: 14px;
+  background: rgba(17, 24, 39, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  cursor: zoom-out;
+}
+.wps-lightbox__close {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(17, 24, 39, 0.78);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wps-lightbox__close:hover {
+  background: rgba(17, 24, 39, 0.9);
+}
+.wps-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(17, 24, 39, 0.68);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wps-lightbox__nav:hover {
+  background: rgba(17, 24, 39, 0.86);
+}
+.wps-lightbox__nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.wps-lightbox__nav.prev {
+  left: -10px;
+}
+.wps-lightbox__nav.next {
+  right: -10px;
+}
+.wps-products-carousel[data-wps-lightbox] .carousel-main img,
+img[data-wps-lightbox-src] {
+  cursor: zoom-in;
 }
 .wps-thumbs {
   width: 64px;

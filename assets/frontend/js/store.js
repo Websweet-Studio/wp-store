@@ -241,6 +241,163 @@
       Alpine.data("wpStore", wpStoreFactory);
     });
   }
+  const wpsLightbox = (() => {
+    let root = null;
+    let panel = null;
+    let img = null;
+    let btnClose = null;
+    let btnPrev = null;
+    let btnNext = null;
+    let activeFlickity = null;
+    let activeOnChange = null;
+    const isOpen = () => root && root.classList.contains("is-open");
+    const setImage = (src, alt) => {
+      if (!img) return;
+      img.src = src || "";
+      img.alt = alt || "";
+    };
+    const getCellImg = (cellElement) => {
+      if (!cellElement || !cellElement.querySelector) return null;
+      return cellElement.querySelector("img");
+    };
+    const updateNavButtons = () => {
+      const canNav =
+        activeFlickity &&
+        Array.isArray(activeFlickity.cells) &&
+        activeFlickity.cells.length > 1;
+      if (!btnPrev || !btnNext) return;
+      btnPrev.style.display = canNav ? "inline-flex" : "none";
+      btnNext.style.display = canNav ? "inline-flex" : "none";
+    };
+    const close = () => {
+      if (!root) return;
+      root.classList.remove("is-open");
+      document.body.classList.remove("wps-lightbox-open");
+      if (activeFlickity && activeOnChange) {
+        try {
+          activeFlickity.off("change", activeOnChange);
+        } catch (e) {}
+      }
+      activeFlickity = null;
+      activeOnChange = null;
+    };
+    const ensure = () => {
+      if (root) return;
+      root = document.createElement("div");
+      root.className = "wps-lightbox";
+      root.setAttribute("role", "dialog");
+      root.setAttribute("aria-modal", "true");
+      panel = document.createElement("div");
+      panel.className = "wps-lightbox__panel";
+      img = document.createElement("img");
+      img.className = "wps-lightbox__img";
+      btnClose = document.createElement("button");
+      btnClose.type = "button";
+      btnClose.className = "wps-lightbox__close";
+      btnClose.setAttribute("aria-label", "Tutup");
+      btnClose.innerHTML = "×";
+      btnPrev = document.createElement("button");
+      btnPrev.type = "button";
+      btnPrev.className = "wps-lightbox__nav prev";
+      btnPrev.setAttribute("aria-label", "Sebelumnya");
+      btnPrev.innerHTML = "‹";
+      btnNext = document.createElement("button");
+      btnNext.type = "button";
+      btnNext.className = "wps-lightbox__nav next";
+      btnNext.setAttribute("aria-label", "Berikutnya");
+      btnNext.innerHTML = "›";
+      panel.appendChild(img);
+      panel.appendChild(btnClose);
+      panel.appendChild(btnPrev);
+      panel.appendChild(btnNext);
+      root.appendChild(panel);
+      document.body.appendChild(root);
+
+      root.addEventListener("click", (e) => {
+        if (e.target === root) close();
+      });
+      img.addEventListener("click", close);
+      btnClose.addEventListener("click", close);
+      btnPrev.addEventListener("click", () => {
+        if (activeFlickity && isOpen()) {
+          try {
+            activeFlickity.previous(true);
+          } catch (e) {}
+        }
+      });
+      btnNext.addEventListener("click", () => {
+        if (activeFlickity && isOpen()) {
+          try {
+            activeFlickity.next(true);
+          } catch (e) {}
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (!isOpen()) return;
+        if (e.key === "Escape") {
+          e.preventDefault();
+          close();
+          return;
+        }
+        if (!activeFlickity) return;
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          try {
+            activeFlickity.previous(true);
+          } catch (err) {}
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          try {
+            activeFlickity.next(true);
+          } catch (err) {}
+        }
+      });
+    };
+    const openFromImg = (el) => {
+      if (!el) return;
+      ensure();
+      activeFlickity = null;
+      activeOnChange = null;
+      setImage(el.dataset.wpsLightboxSrc || el.currentSrc || el.src, el.alt);
+      updateNavButtons();
+      root.classList.add("is-open");
+      document.body.classList.add("wps-lightbox-open");
+    };
+    const openFromCell = (flkty, cellElement, cellIndex) => {
+      ensure();
+      activeFlickity = flkty || null;
+      if (activeFlickity) {
+        try {
+          activeFlickity.select(cellIndex, false, true);
+        } catch (e) {}
+      }
+      const targetImg = getCellImg(cellElement);
+      setImage(
+        targetImg ? targetImg.currentSrc || targetImg.src : "",
+        targetImg ? targetImg.alt : "",
+      );
+      if (activeFlickity) {
+        activeOnChange = (index) => {
+          if (!isOpen()) return;
+          const cell = activeFlickity.cells && activeFlickity.cells[index];
+          const elem = cell && cell.element ? cell.element : null;
+          const i = getCellImg(elem);
+          setImage(i ? i.currentSrc || i.src : "", i ? i.alt : "");
+        };
+        try {
+          activeFlickity.on("change", activeOnChange);
+        } catch (e) {}
+      }
+      updateNavButtons();
+      root.classList.add("is-open");
+      document.body.classList.add("wps-lightbox-open");
+    };
+    return {
+      openFromCell,
+      openFromImg,
+      close,
+    };
+  })();
   const initCarousels = () => {
     if (!window.Flickity) return;
     const nodes = document.querySelectorAll("[data-wps-carousel]");
@@ -273,6 +430,17 @@
         opts.asNavFor = target || d.asNavFor;
       }
       track.__flickity = new window.Flickity(track, opts);
+      if (
+        (d.wpsLightbox === "1" || d.wpsLightbox === "true") &&
+        !track.__wpsLightbox
+      ) {
+        track.__wpsLightbox = true;
+        const flkty = track.__flickity;
+        flkty.on("staticClick", (event, pointer, cellElement, cellIndex) => {
+          if (typeof cellIndex !== "number" || !cellElement) return;
+          wpsLightbox.openFromCell(flkty, cellElement, cellIndex);
+        });
+      }
       if (d.asNavFor) {
         let target = null;
         try {
@@ -319,6 +487,20 @@
     document.addEventListener("DOMContentLoaded", initCarousels);
   }
   document.addEventListener("wp-store:ready", initCarousels);
+  const initLightboxImages = () => {
+    const imgs = document.querySelectorAll("img[data-wps-lightbox-src]");
+    imgs.forEach((el) => {
+      if (el.__wpsLightbox) return;
+      el.__wpsLightbox = true;
+      el.addEventListener("click", () => wpsLightbox.openFromImg(el));
+    });
+  };
+  if (document.readyState !== "loading") {
+    initLightboxImages();
+  } else {
+    document.addEventListener("DOMContentLoaded", initLightboxImages);
+  }
+  document.addEventListener("wp-store:ready", initLightboxImages);
   const setupBeaverBuilderIntegration = () => {
     const content = document.querySelector(".fl-builder-content");
     if (!content) return;

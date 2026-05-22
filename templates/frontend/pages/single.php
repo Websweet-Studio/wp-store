@@ -25,7 +25,7 @@
             }
             ?>
             <?php if (count($items) > 1) : ?>
-                <div class="wps-position-relative wps-w-full wps-products-carousel" data-wps-carousel data-cell-align="center" data-contain="true" data-wrap-around="true" data-page-dots="true" data-prev-next-buttons="true" data-draggable="true">
+                <div class="wps-position-relative wps-w-full wps-products-carousel" data-wps-carousel data-wps-lightbox="1" data-cell-align="center" data-contain="true" data-wrap-around="true" data-page-dots="true" data-prev-next-buttons="true" data-draggable="true">
                     <div class="main-carousel carousel-main" id="wps-main-carousel-<?php echo esc_attr($id); ?>">
                         <?php foreach ($items as $idx => $gi) : ?>
                             <div class="carousel-cell wps-mx-0">
@@ -65,7 +65,7 @@
                 </div>
             <?php else : ?>
                 <div style="position:relative;display:block;">
-                    <img class="wps-w-full wps-rounded wps-img-320" src="<?php echo esc_url($image_src); ?>" alt="<?php echo esc_attr($title); ?>">
+                    <img class="wps-w-full wps-rounded wps-img-320" src="<?php echo esc_url($image_src); ?>" alt="<?php echo esc_attr($title); ?>" data-wps-lightbox-src="<?php echo esc_url($image_src); ?>">
                     <?php
                     $ptype_single = get_post_meta((int) $id, '_store_product_type', true);
                     $is_digital_single = ($ptype_single === 'digital') || (bool) get_post_meta((int) $id, '_store_is_digital', true);
@@ -194,4 +194,7 @@
             <?php echo $content; ?>
         </div>
     </div>
+</div>
+<div class="wps-mt-4">
+    <?php echo do_shortcode('[wp_store_related id="' . esc_attr($id) . '" per_page="4"]'); ?>
 </div>
