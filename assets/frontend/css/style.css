@@ -1192,6 +1192,15 @@ tr:not(:last-child) .wps-td {
   display: block;
   object-fit: cover;
 }
+.wps-related-carousel .carousel-cell {
+  width: 25%;
+  margin-right: 8px;
+}
+@media (max-width: 768px) {
+  .wps-related-carousel .carousel-cell {
+    width: 50%;
+  }
+}
 
 .wps-brand-carousel .wps-brand-item {
   padding: 12px;

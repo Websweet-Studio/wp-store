@@ -196,5 +196,5 @@
     </div>
 </div>
 <div class="wps-mt-4">
-    <?php echo do_shortcode('[wp_store_related id="' . esc_attr($id) . '" per_page="4"]'); ?>
+    <?php echo do_shortcode('[wp_store_related id="' . esc_attr($id) . '" per_page="12"]'); ?>
 </div>
