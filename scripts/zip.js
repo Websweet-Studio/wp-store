@@ -5,7 +5,15 @@ const archiver = require("archiver");
 const root = process.cwd();
 const pkgPath = path.join(root, "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-const version = pkg.version || "0.0.0";
+let version = pkg.version || "0.0.0";
+try {
+  const pluginMain = path.join(root, "wp-store.php");
+  const pluginContent = fs.readFileSync(pluginMain, "utf8");
+  const m = pluginContent.match(/Version:\s*([0-9.]+)/i);
+  if (m && m[1]) {
+    version = m[1];
+  }
+} catch (e) {}
 const distDir = path.join(root, "dist");
 if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
 const outPath = path.join(distDir, `wp-store-${version}.zip`);
