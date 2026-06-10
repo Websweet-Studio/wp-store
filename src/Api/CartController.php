@@ -296,7 +296,10 @@ class CartController
 
     private function resolve_price_with_options($product_id, $opts)
     {
-        $base = (float) get_post_meta($product_id, '_store_price', true);
+        $price = get_post_meta($product_id, '_store_price', true);
+        $sale_price = get_post_meta($product_id, '_store_sale_price', true);
+        $base = ($sale_price !== '' && (float) $sale_price > 0) ? (float) $sale_price : (float) $price;
+
         $adv_name = get_post_meta($product_id, '_store_option2_name', true);
         $adv = get_post_meta($product_id, '_store_advanced_options', true);
         if (is_array($adv) && $adv_name && isset($opts[$adv_name])) {
@@ -309,6 +312,6 @@ class CartController
                 }
             }
         }
-        return $base;
+        return (float) $base;
     }
 }

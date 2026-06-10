@@ -1127,20 +1127,28 @@ class Shortcode
         if ($id <= 0) {
             return '';
         }
+        $price = get_post_meta($id, '_store_price', true);
+        $sale_price = get_post_meta($id, '_store_sale_price', true);
+        $final_price = ($sale_price !== '' && (float) $sale_price > 0) ? (float) $sale_price : (float) $price;
+
         $basic_name = get_post_meta($id, '_store_option_name', true);
         $basic_values = get_post_meta($id, '_store_options', true);
         $adv_name = get_post_meta($id, '_store_option2_name', true);
         $adv_values = get_post_meta($id, '_store_advanced_options', true);
+        $settings = get_option('wp_store_settings', []);
+        $currency = ($settings['currency_symbol'] ?? 'Rp');
         $nonce = wp_create_nonce('wp_rest');
         $label = (is_string($atts['text']) && $atts['text'] !== '') ? $atts['text'] : $atts['label'];
         return Template::render('components/add-to-cart', [
             'btn_class' => $btn_class,
             'id' => $id,
             'label' => $label,
+            'base_price' => $final_price,
             'basic_name' => $basic_name ?: '',
             'basic_values' => (is_array($basic_values) ? array_values($basic_values) : []),
             'adv_name' => $adv_name ?: '',
             'adv_values' => (is_array($adv_values) ? array_values($adv_values) : []),
+            'currency' => $currency,
             'nonce' => $nonce
         ]);
     }

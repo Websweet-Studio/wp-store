@@ -1,10 +1,10 @@
 <script>
-    if (typeof window.wpStoreSettings === 'undefined') {
-        window.wpStoreSettings = {
-            restUrl: '<?php echo esc_url_raw(rest_url('wp-store/v1/')); ?>',
-            nonce: '<?php echo esc_js($nonce); ?>'
-        };
-    }
+if (typeof window.wpStoreSettings === 'undefined') {
+    window.wpStoreSettings = {
+        restUrl: '<?php echo esc_url_raw(rest_url('wp-store/v1/')); ?>',
+        nonce: '<?php echo esc_js($nonce); ?>'
+    };
+}
 </script>
 <div x-data="{
         loading: false,
@@ -13,12 +13,39 @@
         toastType: 'success',
         toastMessage: '',
         showModal: false,
+        basePrice: <?php echo (float) $base_price; ?>,
+        currency: '<?php echo esc_js($currency); ?>',
         basicName: '<?php echo esc_js($basic_name); ?>',
         basicOptions: JSON.parse('<?php echo esc_js(wp_json_encode($basic_values)); ?>'),
         advName: '<?php echo esc_js($adv_name); ?>',
         advOptions: JSON.parse('<?php echo esc_js(wp_json_encode($adv_values)); ?>'),
         selectedBasic: '',
         selectedAdv: '',
+        formatCurrency(value) {
+            const v = typeof value === 'number' ? value : parseFloat(value || 0);
+            if (this.currency === 'USD' || this.currency === '$') {
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(v);
+            }
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v);
+        },
+        get totalPrice() {
+            let total = this.basePrice;
+            if (this.selectedAdv && this.advOptions && this.advOptions.length) {
+                const opt = this.advOptions.find(o => {
+                    if (typeof o === 'object' && o !== null) {
+                        return o.label === this.selectedAdv;
+                    }
+                    return o === this.selectedAdv;
+                });
+                if (opt && typeof opt === 'object' && opt.price) {
+                    const optPrice = parseFloat(opt.price);
+                    if (!isNaN(optPrice) && optPrice > 0) {
+                        total = optPrice;
+                    }
+                }
+            }
+            return total;
+        },
         showToast(msg, type) {
             this.toastMessage = msg || '';
             this.toastType = type === 'error' ? 'error' : 'success';
@@ -103,7 +130,8 @@
             }
         }
     }">
-    <button type="button" @click="add()" :disabled="loading" class="<?php echo esc_attr($btn_class); ?>" :style="loading ? 'opacity:.7; pointer-events:none;' : ''">
+    <button type="button" @click="add()" :disabled="loading" class="<?php echo esc_attr($btn_class); ?>"
+        :style="loading ? 'opacity:.7; pointer-events:none;' : ''">
         <template x-if="loading">
             <span><?php echo wps_icon(['name' => 'spinner', 'size' => 18, 'class' => 'wps-mr-2']); ?></span>
         </template>
@@ -133,14 +161,22 @@
                 <label class="wps-label" x-text="advName"></label>
                 <select class="wps-select" x-model="selectedAdv">
                     <option value="">-- Pilih --</option>
-                    <template x-for="opt in advOptions" :key="opt.label">
-                        <option :value="opt.label" x-text="opt.label"></option>
+                    <template x-for="opt in advOptions" :key="typeof opt === 'object' ? opt.label : opt">
+                        <option :value="typeof opt === 'object' ? opt.label : opt"
+                            x-text="typeof opt === 'object' ? (parseFloat(opt.price) > 0 ? opt.label + ' (' + formatCurrency(opt.price) + ')' : opt.label) : opt">
+                        </option>
                     </template>
                 </select>
             </div>
+            <div class="wps-mb-4 wps-pt-2 wps-border-t wps-flex wps-justify-between wps-items-center">
+                <span class="wps-text-sm wps-text-gray-500">Harga Total:</span>
+                <span class="wps-text-lg wps-font-bold wps-text-gray-900" x-text="formatCurrency(totalPrice)"></span>
+            </div>
             <div class="wps-flex wps-justify-between wps-items-center">
-                <button type="button" class="wps-btn wps-btn-secondary wps-btn-sm" @click="showModal = false">Batal</button>
-                <button type="button" class="wps-btn wps-btn-primary wps-btn-sm" @click="confirmAdd()" :disabled="loading || !canSubmit()" :style="loading ? 'opacity:.7; pointer-events:none;' : ''">
+                <button type="button" class="wps-btn wps-btn-secondary wps-btn-sm"
+                    @click="showModal = false">Batal</button>
+                <button type="button" class="wps-btn wps-btn-primary wps-btn-sm" @click="confirmAdd()"
+                    :disabled="loading || !canSubmit()" :style="loading ? 'opacity:.7; pointer-events:none;' : ''">
                     <template x-if="loading">
                         <span><?php echo wps_icon(['name' => 'spinner', 'size' => 16, 'class' => 'wps-mr-2']); ?></span>
                     </template>
