@@ -957,7 +957,7 @@ img[data-wps-lightbox-src] {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 10000;
+  z-index: 9999998;
 }
 .wps-modal {
   position: fixed;
@@ -969,7 +969,7 @@ img[data-wps-lightbox-src] {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   width: 480px;
   max-width: 95vw;
-  z-index: 10001;
+  z-index: 9999999;
 }
 
 .wps-table {

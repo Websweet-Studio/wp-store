@@ -1,10 +1,10 @@
 <script>
-if (typeof window.wpStoreSettings === 'undefined') {
-    window.wpStoreSettings = {
-        restUrl: '<?php echo esc_url_raw(rest_url('wp-store/v1/')); ?>',
-        nonce: '<?php echo esc_js($nonce); ?>'
-    };
-}
+    if (typeof window.wpStoreSettings === 'undefined') {
+        window.wpStoreSettings = {
+            restUrl: '<?php echo esc_url_raw(rest_url('wp-store/v1/')); ?>',
+            nonce: '<?php echo esc_js($nonce); ?>'
+        };
+    }
 </script>
 <div x-data="{
         loading: false,
@@ -141,7 +141,7 @@ if (typeof window.wpStoreSettings === 'undefined') {
         <?php echo esc_html($label); ?>
     </button>
     <div x-show="toastShow" x-transition x-cloak
-        :style="'position:fixed;top:20px;right:20px;bottom:auto;padding:12px 16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.1);border-left:4px solid ' + (toastType === 'success' ? '#46b450' : '#d63638') + ';border-radius:4px;z-index:9999;'">
+        :style="'position:fixed;top:20px;right:20px;bottom:auto;padding:12px 16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.1);border-left:4px solid ' + (toastType === 'success' ? '#46b450' : '#d63638') + ';border-radius:4px;z-index:9999999;'">
         <span x-text="toastMessage" class="wps-text-sm wps-text-gray-900"></span>
     </div>
     <div x-show="showModal" x-cloak class="wps-modal-backdrop" @click.self="showModal = false"></div>

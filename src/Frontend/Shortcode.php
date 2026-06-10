@@ -33,6 +33,7 @@ class Shortcode
         add_filter('template_include', [$this, 'override_archive_template']);
         add_action('pre_get_posts', [$this, 'adjust_archive_query']);
         add_action('template_redirect', [$this, 'redirect_page_conflict']);
+        add_action('wp_footer', [$this, 'render_global_add_to_cart_modal']);
     }
 
     private function resolve_product_id($given_id = 0)
@@ -693,7 +694,8 @@ class Shortcode
               update();
             })()">
             <div class="wps-flex wps-justify-end wps-mb-2" x-show="isMobile" x-cloak>
-                <button class="wps-btn wps-btn-secondary" @click="openFilters = true"><?php echo esc_html__('Filter', 'wp-store'); ?></button>
+                <button class="wps-btn wps-btn-secondary"
+                    @click="openFilters = true"><?php echo esc_html__('Filter', 'wp-store'); ?></button>
             </div>
             <div class="wps-flex wps-gap-4">
                 <div x-show="!isMobile" x-cloak style="width:300px;flex:0 0 300px;"><?php echo $filters; ?></div>
@@ -705,7 +707,8 @@ class Shortcode
                     <div class="wps-offcanvas">
                         <div class="wps-offcanvas-header">
                             <div><?php echo esc_html__('Filter', 'wp-store'); ?></div>
-                            <button class="wps-btn wps-btn-secondary" @click="openFilters=false"><?php echo esc_html__('Tutup', 'wp-store'); ?></button>
+                            <button class="wps-btn wps-btn-secondary"
+                                @click="openFilters=false"><?php echo esc_html__('Tutup', 'wp-store'); ?></button>
                         </div>
                         <div class="wps-offcanvas-body">
                             <?php echo $filters; ?>
@@ -898,18 +901,13 @@ class Shortcode
 
         ob_start();
     ?>
-        <div class="wps-products-carousel wps-brand-carousel"
-            data-wps-carousel="1"
+        <div class="wps-products-carousel wps-brand-carousel" data-wps-carousel="1"
             data-cell-align="<?php echo esc_attr($cell_align ?: 'left'); ?>"
-            data-contain="<?php echo $contain ? 'true' : 'false'; ?>"
-            data-wrap-around="<?php echo $wrap ? 'true' : 'false'; ?>"
+            data-contain="<?php echo $contain ? 'true' : 'false'; ?>" data-wrap-around="<?php echo $wrap ? 'true' : 'false'; ?>"
             data-page-dots="<?php echo $dots ? 'true' : 'false'; ?>"
-            data-prev-next-buttons="<?php echo $buttons ? 'true' : 'false'; ?>"
-            data-lazy-load="<?php echo (int) $lazy; ?>"
-            data-autoplay="<?php echo (int) $autoplay; ?>"
-            data-pause-on-hover="<?php echo $pause_hover ? 'true' : 'false'; ?>"
-            data-draggable="<?php echo $draggable ? 'true' : 'false'; ?>"
-            data-group-cells="<?php echo (int) $group_cells; ?>">
+            data-prev-next-buttons="<?php echo $buttons ? 'true' : 'false'; ?>" data-lazy-load="<?php echo (int) $lazy; ?>"
+            data-autoplay="<?php echo (int) $autoplay; ?>" data-pause-on-hover="<?php echo $pause_hover ? 'true' : 'false'; ?>"
+            data-draggable="<?php echo $draggable ? 'true' : 'false'; ?>" data-group-cells="<?php echo (int) $group_cells; ?>">
             <?php if ($label !== '') : ?>
                 <div class="wps-text-sm wps-text-gray-900 wps-mb-3"><?php echo esc_html($label); ?></div>
             <?php endif; ?>
@@ -921,17 +919,21 @@ class Shortcode
                         $src = is_string($item['logo'] ?? null) ? (string) $item['logo'] : '';
                         $link = (string) ($item['link'] ?? '');
                         ?>
-                        <a href="<?php echo esc_url($link ?: '#'); ?>" class="carousel-cell wps-brand-cell" style="width:calc(100% / <?php echo (int) $per_row; ?>); margin-right:8px; display:block;">
+                        <a href="<?php echo esc_url($link ?: '#'); ?>" class="carousel-cell wps-brand-cell"
+                            style="width:calc(100% / <?php echo (int) $per_row; ?>); margin-right:8px; display:block;">
                             <div class="wps-brand-item">
-                                <div class="wps-brand-logo-wrap" style="width:100%; aspect-ratio: <?php echo esc_attr($aspect_ratio); ?>;">
+                                <div class="wps-brand-logo-wrap"
+                                    style="width:100%; aspect-ratio: <?php echo esc_attr($aspect_ratio); ?>;">
                                     <?php if ($src) : ?>
-                                        <img class="wps-brand-logo" src="<?php echo esc_url($src); ?>" alt="<?php echo esc_attr($name); ?>" loading="lazy">
+                                        <img class="wps-brand-logo" src="<?php echo esc_url($src); ?>"
+                                            alt="<?php echo esc_attr($name); ?>" loading="lazy">
                                     <?php else : ?>
                                         <div class="wps-brand-fallback"><?php echo esc_html($name); ?></div>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($show_name && $name !== '') : ?>
-                                    <div class="wps-text-xs wps-text-gray-700 wps-mt-2" style="text-align:center;"><?php echo esc_html($name); ?></div>
+                                    <div class="wps-text-xs wps-text-gray-700 wps-mt-2" style="text-align:center;">
+                                        <?php echo esc_html($name); ?></div>
                                 <?php endif; ?>
                             </div>
                         </a>
@@ -1137,19 +1139,38 @@ class Shortcode
         $adv_values = get_post_meta($id, '_store_advanced_options', true);
         $settings = get_option('wp_store_settings', []);
         $currency = ($settings['currency_symbol'] ?? 'Rp');
-        $nonce = wp_create_nonce('wp_rest');
         $label = (is_string($atts['text']) && $atts['text'] !== '') ? $atts['text'] : $atts['label'];
-        return Template::render('components/add-to-cart', [
-            'btn_class' => $btn_class,
+
+        $product_data = [
             'id' => $id,
-            'label' => $label,
+            'title' => get_the_title($id),
             'base_price' => $final_price,
             'basic_name' => $basic_name ?: '',
             'basic_values' => (is_array($basic_values) ? array_values($basic_values) : []),
             'adv_name' => $adv_name ?: '',
             'adv_values' => (is_array($adv_values) ? array_values($adv_values) : []),
-            'currency' => $currency,
-            'nonce' => $nonce
+            'currency' => $currency
+        ];
+
+        return Template::render('components/add-to-cart-button', [
+            'btn_class' => $btn_class,
+            'id' => $id,
+            'label' => $label,
+            'product_data' => $product_data,
+            'has_options' => !empty($basic_name) || !empty($adv_name)
+        ]);
+    }
+
+    public function render_global_add_to_cart_modal()
+    {
+        wp_enqueue_script('alpinejs');
+        wp_enqueue_style('wp-store-frontend-css');
+
+        $settings = get_option('wp_store_settings', []);
+        $currency = ($settings['currency_symbol'] ?? 'Rp');
+
+        echo Template::render('components/global-add-to-cart-modal', [
+            'currency' => $currency
         ]);
     }
 
