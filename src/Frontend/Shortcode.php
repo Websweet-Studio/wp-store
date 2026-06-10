@@ -1139,25 +1139,20 @@ class Shortcode
         $adv_values = get_post_meta($id, '_store_advanced_options', true);
         $settings = get_option('wp_store_settings', []);
         $currency = ($settings['currency_symbol'] ?? 'Rp');
+        $nonce = wp_create_nonce('wp_rest');
         $label = (is_string($atts['text']) && $atts['text'] !== '') ? $atts['text'] : $atts['label'];
 
-        $product_data = [
+        return Template::render('components/add-to-cart-button-simple', [
+            'btn_class' => $btn_class,
             'id' => $id,
-            'title' => get_the_title($id),
+            'label' => $label,
             'base_price' => $final_price,
             'basic_name' => $basic_name ?: '',
             'basic_values' => (is_array($basic_values) ? array_values($basic_values) : []),
             'adv_name' => $adv_name ?: '',
             'adv_values' => (is_array($adv_values) ? array_values($adv_values) : []),
-            'currency' => $currency
-        ];
-
-        return Template::render('components/add-to-cart-button', [
-            'btn_class' => $btn_class,
-            'id' => $id,
-            'label' => $label,
-            'product_data' => $product_data,
-            'has_options' => !empty($basic_name) || !empty($adv_name)
+            'currency' => $currency,
+            'nonce' => $nonce
         ]);
     }
 
@@ -1168,9 +1163,11 @@ class Shortcode
 
         $settings = get_option('wp_store_settings', []);
         $currency = ($settings['currency_symbol'] ?? 'Rp');
+        $nonce = wp_create_nonce('wp_rest');
 
-        echo Template::render('components/global-add-to-cart-modal', [
-            'currency' => $currency
+        echo Template::render('components/global-modal-only', [
+            'currency' => $currency,
+            'nonce' => $nonce
         ]);
     }
 
