@@ -9,6 +9,16 @@ class OrderPrint
         add_action('admin_post_wp_store_print_invoice', [$this, 'print_invoice']);
         add_action('admin_post_wp_store_print_shipping', [$this, 'print_shipping']);
         add_filter('post_row_actions', [$this, 'add_row_actions'], 10, 2);
+        if (!function_exists('mb_internal_encoding') && class_exists('\Dompdf\Dompdf')) {
+            add_action('admin_notices', function () {
+                echo '<div class="notice notice-warning"><p>WP Store: Ekstensi PHP <strong>mbstring</strong> belum aktif di server. Invoice akan ditampilkan dalam format HTML. Hubungi hosting untuk mengaktifkan mbstring.</p></div>';
+            });
+        }
+        if (!class_exists('DOMDocument') && class_exists('\Dompdf\Dompdf')) {
+            add_action('admin_notices', function () {
+                echo '<div class="notice notice-warning"><p>WP Store: Ekstensi PHP <strong>dom</strong> belum aktif di server. Invoice akan ditampilkan dalam format HTML. Hubungi hosting untuk mengaktifkan dom.</p></div>';
+            });
+        }
     }
 
     public function add_row_actions($actions, $post)
@@ -176,7 +186,7 @@ class OrderPrint
         $this->ensure_permission();
         $order_id = $this->get_order_id();
         $html = $this->build_invoice_html($order_id);
-        if (class_exists('\Dompdf\Dompdf')) {
+        if (class_exists('\Dompdf\Dompdf') && function_exists('mb_internal_encoding') && class_exists('DOMDocument')) {
             $dompdf = new \Dompdf\Dompdf();
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->loadHtml($html);
@@ -196,7 +206,7 @@ class OrderPrint
         $this->ensure_permission();
         $order_id = $this->get_order_id();
         $html = $this->build_shipping_html($order_id);
-        if (class_exists('\Dompdf\Dompdf')) {
+        if (class_exists('\Dompdf\Dompdf') && function_exists('mb_internal_encoding') && class_exists('DOMDocument')) {
             $dompdf = new \Dompdf\Dompdf();
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->loadHtml($html);
