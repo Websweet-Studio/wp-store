@@ -86,6 +86,13 @@ class SettingsController
             $settings['shipping_couriers'] = array_map('sanitize_text_field', $params['shipping_couriers']);
         }
 
+        if (isset($params['whatsapp_checkout_enabled'])) {
+            $settings['whatsapp_checkout_enabled'] = $params['whatsapp_checkout_enabled'] === true || $params['whatsapp_checkout_enabled'] === '1' || $params['whatsapp_checkout_enabled'] === 1 ? 1 : 0;
+        }
+        if (isset($params['whatsapp_number'])) {
+            $settings['whatsapp_number'] = sanitize_text_field($params['whatsapp_number']);
+        }
+
         if (isset($params['custom_shipping_rates']) && is_array($params['custom_shipping_rates'])) {
             $rates = [];
             foreach ($params['custom_shipping_rates'] as $rate) {

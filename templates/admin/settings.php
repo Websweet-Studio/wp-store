@@ -303,6 +303,19 @@ if ($wp_store_ro_key !== '' && class_exists('\WpStore\Api\RajaOngkirController')
                         <p class="wp-store-helper">Jika dinonaktifkan, ongkir di checkout akan dilewati dan biaya kirim dianggap 0 (cocok untuk COD, produk digital, atau ambil di tempat).</p>
                     </div>
 
+                    <div class="wp-store-box-gray wp-store-mt-4">
+                        <label class="wp-store-checkbox-label" style="font-size: 15px; font-weight: 500;">
+                            <input type="checkbox" name="whatsapp_checkout_enabled" value="1" <?php echo !empty($settings['whatsapp_checkout_enabled']) ? 'checked' : ''; ?>>
+                            Aktifkan Checkout via WhatsApp
+                        </label>
+                        <p class="wp-store-helper">Tampilkan tombol untuk checkout langsung via WhatsApp. Pelanggan akan diarahkan ke WhatsApp dengan pesan berisi detail pesanan.</p>
+                        <div class="wp-store-mt-2">
+                            <label class="wp-store-label" for="whatsapp_number">Nomor WhatsApp</label>
+                            <input name="whatsapp_number" type="text" id="whatsapp_number" value="<?php echo esc_attr($settings['whatsapp_number'] ?? ''); ?>" class="wp-store-input" placeholder="Contoh: 6281234567890" style="max-width: 300px;">
+                            <p class="wp-store-helper">Gunakan format internasional tanpa + (contoh: 6281234567890). Bisa kosong untuk menggunakan nomor telepon toko.</p>
+                        </div>
+                    </div>
+
                     <div class="wp-store-mt-4">
                         <div>
                             <label class="wp-store-label" for="rajaongkir_api_key">API Key Raja Ongkir</label>

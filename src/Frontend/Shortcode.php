@@ -304,6 +304,8 @@ class Shortcode
         $origin_subdistrict = isset($settings['shipping_origin_subdistrict']) ? (string) $settings['shipping_origin_subdistrict'] : '';
         $active_couriers = $settings['shipping_couriers'] ?? ['jne', 'sicepat', 'ide'];
         $shipping_enabled = !empty($settings['shipping_enabled']);
+        $whatsapp_checkout_enabled = !empty($settings['whatsapp_checkout_enabled']);
+        $whatsapp_number = isset($settings['whatsapp_number']) && $settings['whatsapp_number'] !== '' ? (string) $settings['whatsapp_number'] : (string) ($settings['store_phone'] ?? '');
         $nonce = wp_create_nonce('wp_rest');
         $bank_accounts = [];
         if (isset($settings['store_bank_accounts']) && is_array($settings['store_bank_accounts'])) {
@@ -326,6 +328,8 @@ class Shortcode
             'origin_subdistrict' => $origin_subdistrict,
             'active_couriers' => $active_couriers,
             'shipping_enabled' => $shipping_enabled,
+            'whatsapp_checkout_enabled' => $whatsapp_checkout_enabled,
+            'whatsapp_number' => $whatsapp_number,
             'nonce' => $nonce,
             'bank_accounts' => $bank_accounts,
             'qris_src' => $qris_src,

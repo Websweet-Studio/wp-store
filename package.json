@@ -1,6 +1,6 @@
 {
   "name": "wp-store",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "description": "Build tooling for WP Store frontend assets",
   "scripts": {
