@@ -109,7 +109,9 @@ class OrderPrint
         }
         echo '</tbody></table>';
         echo '<div style="margin-top:12px">';
-        echo '<div class="muted">Ongkir: ' . esc_html(($currency ?: 'Rp') . ' ' . number_format($shipping_cost, 0, ',', '.')) . '</div>';
+        if ((float) $shipping_cost > 0) {
+            echo '<div class="muted">Ongkir: ' . esc_html(($currency ?: 'Rp') . ' ' . number_format($shipping_cost, 0, ',', '.')) . '</div>';
+        }
         echo '<div><strong>Total: ' . esc_html(($currency ?: 'Rp') . ' ' . number_format($total, 0, ',', '.')) . '</strong></div>';
         echo '</div>';
         echo '</div>';

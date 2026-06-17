@@ -118,6 +118,7 @@ if (!$order_number) {
                                         <div class="wps-text-sm wps-text-green-700">-<?php echo esc_html(($currency ?: 'Rp') . ' ' . number_format($discount_amount, 0, ',', '.')); ?></div>
                                     </div>
                                 <?php endif; ?>
+                                <?php if ((float)$shipping_cost > 0 || ($shipping_courier !== '' || $shipping_service !== '')) : ?>
                                 <div class="wps-flex wps-justify-between wps-items-center wps-mt-2">
                                     <?php
                                     $courier_labels = [
@@ -139,6 +140,7 @@ if (!$order_number) {
                                     <div class="wps-text-sm wps-text-gray-500">Ongkir (<?php echo esc_html($courier_label . ' ' . $shipping_service); ?>)</div>
                                     <div class="wps-text-sm wps-text-gray-900"><?php echo esc_html(($currency ?: 'Rp') . ' ' . number_format($shipping_cost, 0, ',', '.')); ?></div>
                                 </div>
+                                <?php endif; ?>
                                 <div class="wps-flex wps-justify-between wps-items-center wps-mt-2" style="border-top:1px dashed #e5e7eb; padding-top:12px;">
                                     <div class="wps-text-sm wps-text-gray-900 wps-font-medium">Total Tagihan</div>
                                     <div class="wps-text-sm wps-text-gray-900 wps-font-medium"><?php echo esc_html(($currency ?: 'Rp') . ' ' . number_format($total, 0, ',', '.')); ?></div>

@@ -74,6 +74,10 @@ class SettingsController
 
         if (isset($params['rajaongkir_api_key'])) $settings['rajaongkir_api_key'] = sanitize_text_field($params['rajaongkir_api_key']);
 
+        if (isset($params['shipping_enabled'])) {
+            $settings['shipping_enabled'] = $params['shipping_enabled'] === true || $params['shipping_enabled'] === '1' || $params['shipping_enabled'] === 1 ? 1 : 0;
+        }
+
         if (isset($params['shipping_origin_province'])) $settings['shipping_origin_province'] = sanitize_text_field($params['shipping_origin_province']);
         if (isset($params['shipping_origin_city'])) $settings['shipping_origin_city'] = sanitize_text_field($params['shipping_origin_city']);
         if (isset($params['shipping_origin_subdistrict'])) $settings['shipping_origin_subdistrict'] = sanitize_text_field($params['shipping_origin_subdistrict']);
@@ -333,6 +337,17 @@ class SettingsController
     public function calculate_rajaongkir_cost(WP_REST_Request $request)
     {
         $settings = get_option('wp_store_settings', []);
+
+        // If shipping is disabled, return zero cost
+        if (empty($settings['shipping_enabled'])) {
+            return new WP_REST_Response([
+                'success' => true,
+                'weight' => 0,
+                'services' => [],
+                'disabled' => true
+            ], 200);
+        }
+
         $api_key = $settings['rajaongkir_api_key'] ?? '';
         $origin_subdistrict = isset($settings['shipping_origin_subdistrict']) ? (string) $settings['shipping_origin_subdistrict'] : '';
         $params = $request->get_json_params();

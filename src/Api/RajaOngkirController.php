@@ -95,6 +95,17 @@ class RajaOngkirController
     public function calculate_rajaongkir_cost(WP_REST_Request $request)
     {
         $settings = get_option('wp_store_settings', []);
+
+        // If shipping is disabled, return zero cost
+        if (empty($settings['shipping_enabled'])) {
+            return new WP_REST_Response([
+                'success' => true,
+                'weight' => 0,
+                'services' => [],
+                'disabled' => true
+            ], 200);
+        }
+
         $api_key = $settings['rajaongkir_api_key'] ?? '';
         $origin_subdistrict = isset($settings['shipping_origin_subdistrict']) ? (string) $settings['shipping_origin_subdistrict'] : '';
         $params = $request->get_json_params();

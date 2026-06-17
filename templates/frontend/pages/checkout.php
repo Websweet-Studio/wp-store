@@ -83,6 +83,7 @@ $qris_label = isset($qris_label) ? (string) $qris_label : 'QRIS';
             },
             currency: '<?php echo esc_js($currency); ?>',
             originSubdistrict: '<?php echo esc_js($origin_subdistrict); ?>',
+            shippingEnabled: <?php echo !empty($shipping_enabled) ? 'true' : 'false'; ?>,
             shippingCouriers: <?php echo json_encode($active_couriers); ?>,
             shippingCourier: '',
             shippingService: '',
@@ -108,6 +109,15 @@ $qris_label = isset($qris_label) ? (string) $qris_label : 'QRIS';
                 }).format(v);
             },
             async calculateAllShipping() {
+                if (!this.shippingEnabled) {
+                    this.shippingOptions = [];
+                    this.selectedShippingKey = '';
+                    this.shippingCourier = '';
+                    this.shippingService = '';
+                    this.shippingCost = 0;
+                    this.recomputeAllow();
+                    return;
+                }
                 if (!this.selectedSubdistrict || !Array.isArray(this.shippingCouriers) || this.shippingCouriers.length === 0) {
                     this.recomputeAllow();
                     return;
@@ -679,7 +689,7 @@ $qris_label = isset($qris_label) ? (string) $qris_label : 'QRIS';
                     </div>
                 </div>
                 <div>
-                    <div class="wps-card wps-mb-4">
+                    <div class="wps-card wps-mb-4" x-show="shippingEnabled">
                         <div class="wps-p-4">
                             <div class="wps-text-lg wps-font-medium wps-mb-4 wps-text-bold">Metode Pengiriman</div>
                             <div class="wps-mb-2">

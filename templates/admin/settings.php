@@ -295,6 +295,14 @@ if ($wp_store_ro_key !== '' && class_exists('\WpStore\Api\RajaOngkirController')
                     <h3 class="wp-store-subtitle">Pengaturan Pengiriman</h3>
                     <p class="wp-store-helper">Konfigurasi API Raja Ongkir dan metode pengiriman.</p>
 
+                    <div class="wp-store-box-gray wp-store-mt-4">
+                        <label class="wp-store-checkbox-label" style="font-size: 15px; font-weight: 500;">
+                            <input type="checkbox" name="shipping_enabled" value="1" <?php echo !empty($settings['shipping_enabled']) ? 'checked' : ''; ?>>
+                            Aktifkan Ongkos Kirim
+                        </label>
+                        <p class="wp-store-helper">Jika dinonaktifkan, ongkir di checkout akan dilewati dan biaya kirim dianggap 0 (cocok untuk COD, produk digital, atau ambil di tempat).</p>
+                    </div>
+
                     <div class="wp-store-mt-4">
                         <div>
                             <label class="wp-store-label" for="rajaongkir_api_key">API Key Raja Ongkir</label>

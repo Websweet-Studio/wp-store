@@ -303,6 +303,7 @@ class Shortcode
         $currency = ($settings['currency_symbol'] ?? 'Rp');
         $origin_subdistrict = isset($settings['shipping_origin_subdistrict']) ? (string) $settings['shipping_origin_subdistrict'] : '';
         $active_couriers = $settings['shipping_couriers'] ?? ['jne', 'sicepat', 'ide'];
+        $shipping_enabled = !empty($settings['shipping_enabled']);
         $nonce = wp_create_nonce('wp_rest');
         $bank_accounts = [];
         if (isset($settings['store_bank_accounts']) && is_array($settings['store_bank_accounts'])) {
@@ -324,6 +325,7 @@ class Shortcode
             'currency' => $currency,
             'origin_subdistrict' => $origin_subdistrict,
             'active_couriers' => $active_couriers,
+            'shipping_enabled' => $shipping_enabled,
             'nonce' => $nonce,
             'bank_accounts' => $bank_accounts,
             'qris_src' => $qris_src,
