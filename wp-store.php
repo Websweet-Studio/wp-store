@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WP Store
  * Description: Plugin ecommerce sederhana berbasis REST API dan Alpine.js
- * Version:     0.1.1
+ * Version:     0.1.11
  * Author:      Aditya Kristyanto
  * Author URI:  https://websweetstudio.com
  * Text Domain: wp-store
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WP_STORE_VERSION', '0.1.1');
+define('WP_STORE_VERSION', '0.1.11');
 define('WP_STORE_PATH', plugin_dir_path(__FILE__));
 define('WP_STORE_URL', plugin_dir_url(__FILE__));
 
