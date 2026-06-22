@@ -29,6 +29,8 @@ class Shortcode
         add_shortcode('wp_store_catalog', [$this, 'render_catalog']);
         add_shortcode('wp_store_filters', [$this, 'render_filters']);
         add_shortcode('wp_store_shop_with_filters', [$this, 'render_shop_with_filters']);
+        add_shortcode('wp_store_categories', [$this, 'render_categories']);
+        add_shortcode('store_categories', [$this, 'render_categories']);
         add_filter('the_content', [$this, 'filter_single_content']);
         add_filter('template_include', [$this, 'override_archive_template']);
         add_action('pre_get_posts', [$this, 'adjust_archive_query']);
@@ -1505,5 +1507,149 @@ class Shortcode
                 }
             }
         }
+    }
+
+    public function render_categories($atts = [])
+    {
+        $atts = shortcode_atts([
+            'view' => 'grid',
+            'per_page' => 12,
+            'columns' => 4,
+            'parent' => 0,
+            'hide_empty' => 'false',
+            'orderby' => 'name',
+            'order' => 'ASC',
+            'show_count' => 'false',
+            'show_image' => 'true',
+            'img_width' => 300,
+            'img_height' => 200,
+            'crop' => 'true',
+            'label' => '',
+            'autoplay' => 0,
+            'pause_on_hover' => 'true',
+            'wrap_around' => 'true',
+            'page_dots' => 'false',
+            'prev_next_buttons' => 'true',
+            'lazy_load' => 0,
+            'cell_align' => 'center',
+            'draggable' => 'true',
+            'contain' => 'true'
+        ], $atts);
+
+        $view = sanitize_key($atts['view']);
+        if (!in_array($view, ['grid', 'carousel'], true)) {
+            $view = 'grid';
+        }
+        $is_carousel = ($view === 'carousel');
+
+        $per_page = (int) $atts['per_page'];
+        if ($per_page <= 0) {
+            $per_page = 12;
+        }
+        if ($per_page > 200) $per_page = 200;
+
+        $columns = (int) $atts['columns'];
+        if ($columns <= 0 || $columns > 6) {
+            $columns = 4;
+        }
+
+        $parent = (int) $atts['parent'];
+
+        $hide_empty = in_array(strtolower((string) $atts['hide_empty']), ['1', 'true', 'yes'], true);
+        $show_count = in_array(strtolower((string) $atts['show_count']), ['1', 'true', 'yes'], true);
+        $show_image = in_array(strtolower((string) $atts['show_image']), ['1', 'true', 'yes'], true);
+
+        $orderby = sanitize_key((string) $atts['orderby']);
+        if (!in_array($orderby, ['name', 'count', 'id', 'slug', 'term_id'], true)) {
+            $orderby = 'name';
+        }
+        $order = strtoupper((string) $atts['order']) === 'DESC' ? 'DESC' : 'ASC';
+
+        $w = max(1, (int) $atts['img_width']);
+        $h = max(1, (int) $atts['img_height']);
+
+        $args = [
+            'taxonomy' => 'store_product_cat',
+            'hide_empty' => $hide_empty,
+            'number' => $per_page,
+            'orderby' => $orderby,
+            'order' => $order,
+        ];
+
+        if ($parent > 0) {
+            $args['parent'] = $parent;
+        }
+
+        $terms = get_terms($args);
+
+        if (is_wp_error($terms) || empty($terms)) {
+            return '<div class="wps-text-sm wps-text-gray-500">Tidak ada kategori.</div>';
+        }
+
+        $items = [];
+        foreach ($terms as $t) {
+            if (!is_object($t) || !isset($t->term_id)) {
+                continue;
+            }
+            $term_id = (int) $t->term_id;
+            if ($term_id <= 0) {
+                continue;
+            }
+
+            $link = get_term_link($term_id, 'store_product_cat');
+            if (is_wp_error($link) || !is_string($link)) {
+                $link = '';
+            }
+
+            $image = '';
+            $cat_img_id = (int) get_term_meta($term_id, '_store_cat_image_id', true);
+            if ($cat_img_id) {
+                $image = wp_get_attachment_image_url($cat_img_id, [$w, $h]);
+            }
+
+            $items[] = [
+                'id' => $term_id,
+                'name' => (string) ($t->name ?? ''),
+                'link' => $link,
+                'image' => $image ?: '',
+                'count' => (int) ($t->count ?? 0),
+                'description' => (string) ($t->description ?? ''),
+            ];
+        }
+
+        if (empty($items)) {
+            return '<div class="wps-text-sm wps-text-gray-500">Tidak ada kategori.</div>';
+        }
+
+        $label = is_string($atts['label']) ? (string) $atts['label'] : '';
+
+        $html = Template::render('components/categories-grid-carousel', [
+            'items' => $items,
+            'columns' => $columns,
+            'is_carousel' => $is_carousel,
+            'show_count' => $show_count,
+            'show_image' => $show_image,
+            'img_width' => $w,
+            'img_height' => $h,
+            'crop' => in_array(strtolower((string) $atts['crop']), ['1', 'true', 'yes'], true),
+            'label' => $label,
+            'opts' => [
+                'autoplay' => max(0, (int) $atts['autoplay']),
+                'pause_on_hover' => in_array(strtolower((string) $atts['pause_on_hover']), ['1', 'true', 'yes'], true),
+                'wrap_around' => in_array(strtolower((string) $atts['wrap_around']), ['1', 'true', 'yes'], true),
+                'page_dots' => in_array(strtolower((string) $atts['page_dots']), ['1', 'true', 'yes'], true),
+                'prev_next_buttons' => in_array(strtolower((string) $atts['prev_next_buttons']), ['1', 'true', 'yes'], true),
+                'lazy_load' => max(0, (int) $atts['lazy_load']),
+                'cell_align' => sanitize_key($atts['cell_align']),
+                'draggable' => in_array(strtolower((string) $atts['draggable']), ['1', 'true', 'yes'], true),
+                'contain' => in_array(strtolower((string) $atts['contain']), ['1', 'true', 'yes'], true),
+            ]
+        ]);
+
+        if ($is_carousel) {
+            wp_enqueue_script('wp-store-frontend');
+        }
+
+        return $html;
     }
 }
