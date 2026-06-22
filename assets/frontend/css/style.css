@@ -1713,3 +1713,164 @@ tr:not(:last-child) .wps-td {
     --wps-cols: 1 !important;
   }
 }
+
+/* ===== Categories Circle Style ===== */
+.wps-cat-circle {
+  text-align: center;
+}
+
+.wps-cat-circle .wps-cat-image-wrap {
+  border-radius: 50% !important;
+  overflow: hidden;
+  margin: 0 auto;
+  max-width: 180px;
+}
+
+.wps-cat-circle .wps-cat-info {
+  padding: 10px 8px 4px;
+  text-align: center;
+}
+
+.wps-cat-grid-item:has(.wps-cat-circle) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.wps-cat-grid-item:has(.wps-cat-circle):hover {
+  transform: translateY(-2px);
+}
+
+.wps-categories-carousel .wps-cat-circle .wps-cat-image-wrap {
+  border-radius: 50% !important;
+  overflow: hidden;
+  margin: 0 auto;
+  max-width: 160px;
+}
+
+/* ===== Categories Overlay Style ===== */
+.wps-cat-overlay .wps-cat-image-wrap {
+  position: relative;
+}
+
+.wps-cat-overlay-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 14px 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+  color: #ffffff;
+}
+
+.wps-cat-overlay-info .wps-cat-name {
+  color: #ffffff;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.wps-cat-overlay-info .wps-cat-count {
+  color: rgba(255,255,255,0.85);
+}
+
+.wps-cat-overlay-info .wps-cat-desc {
+  color: rgba(255,255,255,0.8);
+  margin-top: 4px;
+}
+
+.wps-cat-grid-item:has(.wps-cat-overlay) {
+  border: none !important;
+  overflow: hidden;
+}
+
+/* ===== Categories Clean Style ===== */
+.wps-cat-grid-item:has(.wps-cat-clean) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.wps-cat-clean .wps-cat-image-wrap {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wps-cat-clean .wps-cat-info {
+  padding: 10px 2px 2px;
+}
+
+.wps-cat-grid-item:has(.wps-cat-clean):hover {
+  transform: none;
+}
+
+.wps-cat-grid-item:has(.wps-cat-clean):hover .wps-cat-name {
+  color: #2563eb;
+}
+
+.wps-categories-carousel .wps-cat-clean .wps-cat-image-wrap {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* ===== Categories List Style ===== */
+.wps-categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.wps-cat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 8px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s ease;
+}
+
+.wps-cat-list-item:hover {
+  background: #f9fafb;
+}
+
+.wps-cat-list-item:first-child {
+  border-top: 1px solid #f3f4f6;
+}
+
+.wps-cat-list-image {
+  flex-shrink: 0;
+}
+
+.wps-cat-list-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wps-cat-list-body .wps-cat-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.wps-cat-list-body .wps-cat-count {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.wps-cat-list-body .wps-cat-desc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.wps-cat-list-arrow {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: #d1d5db;
+  font-weight: 300;
+  line-height: 1;
+}

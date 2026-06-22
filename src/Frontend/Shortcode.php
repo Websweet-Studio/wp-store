@@ -1513,6 +1513,7 @@ class Shortcode
     {
         $atts = shortcode_atts([
             'view' => 'grid',
+            'style' => 'card',
             'per_page' => 12,
             'columns' => 4,
             'parent' => 0,
@@ -1521,6 +1522,7 @@ class Shortcode
             'order' => 'ASC',
             'show_count' => 'false',
             'show_image' => 'true',
+            'show_description' => 'false',
             'img_width' => 300,
             'img_height' => 200,
             'crop' => 'true',
@@ -1537,10 +1539,15 @@ class Shortcode
         ], $atts);
 
         $view = sanitize_key($atts['view']);
-        if (!in_array($view, ['grid', 'carousel'], true)) {
+        if (!in_array($view, ['grid', 'carousel', 'list', 'circle', 'overlay'], true)) {
             $view = 'grid';
         }
         $is_carousel = ($view === 'carousel');
+
+        $style = sanitize_key($atts['style']);
+        if (!in_array($style, ['card', 'circle', 'overlay', 'clean'], true)) {
+            $style = 'card';
+        }
 
         $per_page = (int) $atts['per_page'];
         if ($per_page <= 0) {
@@ -1558,6 +1565,7 @@ class Shortcode
         $hide_empty = in_array(strtolower((string) $atts['hide_empty']), ['1', 'true', 'yes'], true);
         $show_count = in_array(strtolower((string) $atts['show_count']), ['1', 'true', 'yes'], true);
         $show_image = in_array(strtolower((string) $atts['show_image']), ['1', 'true', 'yes'], true);
+        $show_description = in_array(strtolower((string) $atts['show_description']), ['1', 'true', 'yes'], true);
 
         $orderby = sanitize_key((string) $atts['orderby']);
         if (!in_array($orderby, ['name', 'count', 'id', 'slug', 'term_id'], true)) {
@@ -1625,10 +1633,13 @@ class Shortcode
 
         $html = Template::render('components/categories-grid-carousel', [
             'items' => $items,
+            'view' => $view,
+            'style' => $style,
             'columns' => $columns,
             'is_carousel' => $is_carousel,
             'show_count' => $show_count,
             'show_image' => $show_image,
+            'show_description' => $show_description,
             'img_width' => $w,
             'img_height' => $h,
             'crop' => in_array(strtolower((string) $atts['crop']), ['1', 'true', 'yes'], true),

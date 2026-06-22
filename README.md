@@ -162,6 +162,72 @@ WP Store adalah plugin WordPress untuk membuat toko sederhana dengan fitur Produ
       - `countdown`: `true|false` menampilkan waktu berakhir promo jika tersedia
     - Contoh:  
       `[wp_store_price id="123" countdown="true"]`
+  - `wp_store_categories` / `store_categories`
+    - Menampilkan daftar kategori produk (`store_product_cat`) dalam berbagai layout.
+    - **view** – tata letak utama:
+      - `grid` (default) – grid card
+      - `carousel` – slider berbasis Flickity
+      - `list` – daftar vertikal dengan thumbnail kecil + panah
+      - `circle` – shortcut untuk `grid` + `style="circle"`
+      - `overlay` – shortcut untuk `grid` + `style="overlay"`
+    - **style** – gaya tampilan item (berlaku untuk `grid` dan `carousel`):
+      - `card` (default) – kartu dengan border & shadow
+      - `circle` – gambar bulat (avatar) + nama di tengah bawah
+      - `overlay` – teks melayang di atas gambar (gradient gelap)
+      - `clean` – minimalis tanpa border, hover warna teks
+    - Opsi umum:
+      - `per_page`: jumlah kategori ditampilkan (default 12, max 200)
+      - `columns`: jumlah kolom per baris (default 4, max 6)
+      - `parent`: ID parent kategori, `0` untuk semua (default 0)
+      - `hide_empty`: `true|false` sembunyikan kategori kosong (default false)
+      - `orderby`: `name|count|id|slug|term_id` (default name)
+      - `order`: `ASC|DESC` (default ASC)
+      - `show_count`: `true|false` tampilkan jumlah produk (default false)
+      - `show_image`: `true|false` tampilkan gambar kategori (default true)
+      - `show_description`: `true|false` tampilkan deskripsi kategori (default false)
+      - `img_width`: lebar gambar (default 300)
+      - `img_height`: tinggi gambar (default 200)
+      - `crop`: `true|false` object-fit cover/contain (default true)
+      - `label`: teks label di atas (default kosong)
+      - **Mode carousel**: `autoplay`, `pause_on_hover`, `wrap_around`, `page_dots`, `prev_next_buttons`, `lazy_load`, `cell_align`, `draggable`, `contain`
+    - Contoh grid card:  
+      `[wp_store_categories view="grid" style="card" columns="4" show_count="true"]`
+    - Contoh grid circle:  
+      `[wp_store_categories view="circle" columns="5" show_count="true"]`
+    - Contoh grid overlay:  
+      `[wp_store_categories view="overlay" columns="3" img_height="280"]`
+    - Contoh grid clean:  
+      `[wp_store_categories view="grid" style="clean" columns="4"]`
+    - Contoh list:  
+      `[wp_store_categories view="list" show_count="true" show_description="true"]`
+    - Contoh carousel card:  
+      `[wp_store_categories view="carousel" per_page="8" columns="4" autoplay="3000" page_dots="true"]`
+  - `wp_store_brand_carousel`
+    - Carousel brand (`store_product_brand`) berbasis Flickity.
+    - Opsi:
+      - `label`: teks label di atas carousel (default kosong)
+      - `per_page`: jumlah brand diambil (default 30, max 200)
+      - `per_row`: jumlah brand per slide (default 6, max 12)
+      - `img_width`: lebar logo brand (default 160)
+      - `img_height`: tinggi logo brand (default 80)
+      - `show_name`: `true|false` tampilkan nama brand (default false)
+      - `only_with_logo`: `true|false` hanya brand dengan logo (default true)
+      - `hide_empty`: `true|false` sembunyikan brand tanpa produk (default false)
+      - `orderby`: `name|count|id|slug|term_group|term_id` (default name)
+      - `order`: `ASC|DESC` (default ASC)
+      - **Opsi carousel**: `autoplay`, `pause_on_hover`, `wrap_around`, `page_dots`, `prev_next_buttons`, `lazy_load`, `cell_align`, `draggable`, `contain`
+    - Contoh:  
+      `[wp_store_brand_carousel per_page="12" per_row="4" show_name="true" autoplay="4000" page_dots="true"]`
+  - `wp_store_filters`
+    - Menampilkan panel filter (kategori, brand, harga, label, sortir).
+    - Opsi:
+      - `show_labels`: `1|0` tampilkan filter label (default 1)
+    - Contoh: `[wp_store_filters]`
+  - `wp_store_shop_with_filters`
+    - Kombinasi panel filter + katalog produk dalam satu halaman.
+    - Opsi:
+      - `per_page`: jumlah produk per halaman (default 12, max 50)
+    - Contoh: `[wp_store_shop_with_filters per_page="12"]`
 
 - Berat & Cache
   - Berat total dihitung dari meta `_store_weight_kg` per produk dan dikonversi ke gram.
