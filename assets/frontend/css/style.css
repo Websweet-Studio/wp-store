@@ -1713,3 +1713,101 @@ tr:not(:last-child) .wps-td {
     --wps-cols: 1 !important;
   }
 }
+
+/* ===== Product Gallery ===== */
+.wps-product-gallery {
+  width: 100%;
+}
+
+.wps-gallery-main {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.wps-gallery-zoom {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: zoom-in;
+}
+
+.wps-gallery-main-img {
+  width: 100%;
+  height: auto;
+  max-height: 600px;
+  object-fit: contain;
+  display: block;
+}
+
+.wps-gallery-thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.wps-gallery-thumb {
+  flex: 0 0 auto;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.wps-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wps-gallery-thumb:hover {
+  border-color: #d1d5db;
+}
+
+.wps-gallery-thumb.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+/* ===== Zoom Lens ===== */
+.wps-gallery-zoom-lens {
+  position: absolute;
+  border: 1px solid rgba(0,0,0,0.1);
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.wps-gallery-zoom:hover .wps-gallery-zoom-lens {
+  opacity: 1;
+}
+
+/* ===== Zoom Result ===== */
+.wps-gallery-zoom-result {
+  position: absolute;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background-repeat: no-repeat;
+  z-index: 10;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+  .wps-gallery-zoom-lens,
+  .wps-gallery-zoom-result {
+    display: none !important;
+  }
+  
+  .wps-gallery-zoom {
+    cursor: pointer;
+  }
+}

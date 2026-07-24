@@ -537,4 +537,141 @@
   ) {
     setupBeaverBuilderIntegration();
   }
+
+  // ==== Product Gallery ====
+  const initProductGallery = () => {
+    const galleries = document.querySelectorAll('[data-wps-gallery="1"]');
+    if (!galleries.length) return;
+
+    galleries.forEach((gallery) => {
+      const mainImg = gallery.querySelector(".wps-gallery-main-img");
+      const thumbs = gallery.querySelectorAll(".wps-gallery-thumb");
+      const zoomContainer = gallery.querySelector(".wps-gallery-zoom");
+      const lens = gallery.querySelector(".wps-gallery-zoom-lens");
+      let result = null;
+      let cx = 0, cy = 0;
+
+      // Thumbnail click handler
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener("click", () => {
+          const newSrc = thumb.getAttribute("data-main-src");
+          if (newSrc) {
+            mainImg.src = newSrc;
+            mainImg.setAttribute("data-wps-lightbox-src", newSrc);
+            thumbs.forEach((t) => t.classList.remove("active"));
+            thumb.classList.add("active");
+          }
+        });
+      });
+
+      // Zoom functionality
+      const initZoom = () => {
+        // Check if mobile, skip zoom
+        if (window.innerWidth <= 768) return;
+
+        // Create result div if not exists
+        if (!result) {
+          result = document.createElement("div");
+          result.className = "wps-gallery-zoom-result";
+          result.style.display = "none";
+          zoomContainer.appendChild(result);
+        }
+
+        const imgRect = mainImg.getBoundingClientRect();
+        const imgWidth = imgRect.width;
+        const imgHeight = imgRect.height;
+        const imgNaturalWidth = mainImg.naturalWidth;
+        const imgNaturalHeight = mainImg.naturalHeight;
+
+        if (imgNaturalWidth === 0 || imgNaturalHeight === 0) return;
+
+        const zoomLevel = 2;
+        cx = (imgNaturalWidth * zoomLevel) / imgWidth;
+        cy = (imgNaturalHeight * zoomLevel) / imgHeight;
+
+        const lensWidth = imgWidth / zoomLevel;
+        const lensHeight = imgHeight / zoomLevel;
+        lens.style.width = `${lensWidth}px`;
+        lens.style.height = `${lensHeight}px`;
+
+        result.style.width = `${imgWidth}px`;
+        result.style.height = `${imgHeight}px`;
+        result.style.backgroundSize = `${imgWidth * zoomLevel}px ${imgHeight * zoomLevel}px`;
+        result.style.backgroundImage = `url('${mainImg.src}')`;
+        result.style.left = `${imgWidth + 16}px`;
+        result.style.top = "0";
+      };
+
+      const moveLens = (e) => {
+        if (window.innerWidth <= 768) return;
+        
+        e.preventDefault();
+        const imgRect = mainImg.getBoundingClientRect();
+        const zoomRect = zoomContainer.getBoundingClientRect();
+        
+        let x = e.clientX - zoomRect.left - (lens.offsetWidth / 2);
+        let y = e.clientY - zoomRect.top - (lens.offsetHeight / 2);
+
+        const maxX = zoomRect.width - lens.offsetWidth;
+        const maxY = zoomRect.height - lens.offsetHeight;
+
+        x = Math.max(0, Math.min(x, maxX));
+        y = Math.max(0, Math.min(y, maxY));
+
+        lens.style.left = `${x}px`;
+        lens.style.top = `${y}px`;
+
+        if (result) {
+          result.style.backgroundPosition = `-${x * cx}px -${y * cy}px`;
+        }
+      };
+
+      const showZoom = () => {
+        if (window.innerWidth <= 768) return;
+        initZoom();
+        if (result) result.style.display = "block";
+      };
+
+      const hideZoom = () => {
+        if (result) result.style.display = "none";
+      };
+
+      zoomContainer.addEventListener("mousemove", moveLens);
+      zoomContainer.addEventListener("mouseenter", showZoom);
+      zoomContainer.addEventListener("mouseleave", hideZoom);
+      zoomContainer.addEventListener("mouseenter", initZoom);
+      
+      // Re-init on main img change
+      const originalThumbClick = thumbs[0]?.addEventListener;
+      mainImg.addEventListener("load", initZoom);
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initProductGallery);
+  } else {
+    initProductGallery();
+  }
+  document.addEventListener("wp-store:ready", initProductGallery);
+
+  // Mutation observer for dynamic galleries
+  const galleryObserver = new MutationObserver((mutations) => {
+    for (let i = 0; i < mutations.length; i++) {
+      const m = mutations[i];
+      if (m.addedNodes && m.addedNodes.length) {
+        for (let j = 0; j < m.addedNodes.length; j++) {
+          const n = m.addedNodes[j];
+          if (n.nodeType === 1) {
+            if (
+              (n.matches && n.matches('[data-wps-gallery="1"]')) ||
+              (n.querySelector && n.querySelector('[data-wps-gallery="1"]'))
+            ) {
+              initProductGallery();
+            }
+          }
+        }
+      }
+    }
+  });
+  galleryObserver.observe(document.body, { childList: true, subtree: true });
 })();

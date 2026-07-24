@@ -31,6 +31,8 @@ class Shortcode
         add_shortcode('wp_store_shop_with_filters', [$this, 'render_shop_with_filters']);
         add_shortcode('wp_store_categories', [$this, 'render_categories']);
         add_shortcode('store_categories', [$this, 'render_categories']);
+        add_shortcode('wp_store_product_gallery', [$this, 'render_product_gallery']);
+        add_shortcode('store_product_gallery', [$this, 'render_product_gallery']);
         add_filter('the_content', [$this, 'filter_single_content']);
         add_filter('template_include', [$this, 'override_archive_template']);
         add_action('pre_get_posts', [$this, 'adjust_archive_query']);
@@ -1651,5 +1653,59 @@ class Shortcode
         }
 
         return $html;
+    }
+
+    public function render_product_gallery($atts = [])
+    {
+        wp_enqueue_script('wp-store-frontend');
+        $atts = shortcode_atts([
+            'id' => get_the_ID(),
+            'img_width' => 600,
+            'img_height' => 600,
+            'thumb_width' => 80,
+            'thumb_height' => 80,
+        ], $atts);
+
+        $id = $this->resolve_product_id((int) $atts['id']);
+        if ($id <= 0) {
+            return '';
+        }
+
+        $img_w = max(1, (int) $atts['img_width']);
+        $img_h = max(1, (int) $atts['img_height']);
+        $thumb_w = max(1, (int) $atts['thumb_width']);
+        $thumb_h = max(1, (int) $atts['thumb_height']);
+
+        $featured_url = get_the_post_thumbnail_url($id, 'large');
+        $featured_url = $featured_url ? $featured_url : (WP_STORE_URL . 'assets/frontend/img/noimg.webp');
+        $featured_thumb = get_the_post_thumbnail_url($id, 'thumbnail');
+        $featured_thumb = $featured_thumb ? $featured_thumb : $featured_url;
+
+        $items = [];
+        $items[] = [
+            'full' => $featured_url,
+            'thumb' => $featured_thumb
+        ];
+
+        $gallery_raw = get_post_meta($id, '_store_gallery_ids', true);
+        if (is_array($gallery_raw) && !empty($gallery_raw)) {
+            foreach ($gallery_raw as $k => $v) {
+                $aid = is_numeric($k) ? (int) $k : 0;
+                $full = $aid ? (wp_get_attachment_image_url($aid, 'large') ?: (is_string($v) ? $v : '')) : (is_string($v) ? $v : '');
+                $thumb = $aid ? (wp_get_attachment_image_url($aid, 'thumbnail') ?: $full) : $full;
+                if ($full) {
+                    $items[] = ['full' => $full, 'thumb' => $thumb];
+                }
+            }
+        }
+
+        return Template::render('components/product-gallery', [
+            'id' => $id,
+            'items' => $items,
+            'img_width' => $img_w,
+            'img_height' => $img_h,
+            'thumb_width' => $thumb_w,
+            'thumb_height' => $thumb_h,
+        ]);
     }
 }
