@@ -894,6 +894,12 @@ button.wps-btn-dark {
   object-fit: cover;
 }
 
+.wps-img-80 {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
+
 .wps-img-320 {
   width: 100%;
   height: 320px;
